@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>XML + XSLT Viewer</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:20px;color:#111}
+  h1{font-size:1.25rem}
+  #output{border:1px solid #ddd;padding:12px;margin-top:12px;min-height:200px;background:#fff}
+  .controls{gap:8px;display:flex;align-items:center;flex-wrap:wrap}
+  label{font-size:0.9rem}
+  input[type=file]{margin-left:6px}
+  button{padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:#f7f7f7;cursor:pointer}
+  button:hover{background:#eee}
+  #status{margin-top:8px;color:#555}
+</style>
+</head>
+<body>
+  <h1>XML + XSLT Viewer</h1>
+  <p>Wähle eine lokale XML- und optional eine XSL-Datei. Die Transformation läuft im Browser (kein Server nötig).</p>
+  <div class="controls">
+    <label>XML: <input id="xmlFile" type="file" accept=".xml,application/xml"></label>
+    <label>XSL: <input id="xslFile" type="file" accept=".xsl,text/xsl,application/xslt+xml"></label>
+    <button id="apply">Anwenden</button>
+    <button id="download">Export als HTML</button>
+  </div>
+  <div id="status" aria-live="polite"></div>
+  <div id="output"></div>
+
+<script>
+const xmlInput = document.getElementById('xmlFile');
+const xslInput = document.getElementById('xslFile');
+const applyBtn = document.getElementById('apply');
+const downloadBtn = document.getElementById('download');
+const out = document.getElementById('output');
+const status = document.getElementById('status');
+
+let xmlDoc = null, xslDoc = null;
+
+function readFile(file){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.readAsText(file);
+  });
+}
+
+xmlInput.addEventListener('change', async (e)=>{
+  if(!e.target.files.length) return;
+  try {
+    const txt = await readFile(e.target.files[0]);
+    xmlDoc = new DOMParser().parseFromString(txt, 'application/xml');
+    if(xmlDoc.querySelector('parsererror')) {
+      status.textContent = 'Fehler beim Parsen der XML.';
+      xmlDoc = null;
+    } else {
+      status.textContent = 'XML geladen.';
+    }
+  } catch(err){ status.textContent = 'Fehler: ' + err; }
+});
+
+xslInput.addEventListener('change', async (e)=>{
+  if(!e.target.files.length) return;
+  try {
+    const txt = await readFile(e.target.files[0]);
+    xslDoc = new DOMParser().parseFromString(txt, 'application/xml');
+    if(xslDoc.querySelector('parsererror')) {
+      status.textContent = 'Fehler beim Parsen der XSL.';
+      xslDoc = null;
+    } else {
+      status.textContent = 'XSL geladen.';
+    }
+  } catch(err){ status.textContent = 'Fehler: ' + err; }
+});
+
+applyBtn.addEventListener('click', ()=>{
+  if(!xmlDoc){ alert('Bitte zuerst eine XML-Datei wählen.'); return; }
+  // Wenn keine XSL gewählt wurde, versuchen wir, die XML auf ein referenziertes Stylesheet zu prüfen
+  if(!xslDoc){
+    const pi = xmlDoc.firstChild && xmlDoc.firstChild.nodeType === 7 && xmlDoc.firstChild.nodeName === 'xml-stylesheet' ? xmlDoc.firstChild.nodeValue : null;
+    if(!pi){ alert('Keine XSL-Datei gewählt. Wenn Ihre XML ein Stylesheet-Referenz enthält, laden Sie die XSL-Datei separat.'); return; }
+  }
+  try {
+    const proc = new XSLTProcessor();
+    proc.importStylesheet(xslDoc);
+    const frag = proc.transformToFragment(xmlDoc, document);
+    out.innerHTML = '';
+    out.appendChild(frag);
+    status.textContent = 'Transformation erfolgreich.';
+  } catch(err){
+    out.textContent = 'Fehler bei der Transformation: ' + err;
+    status.textContent = 'Fehler.';
+  }
+});
+
+downloadBtn.addEventListener('click', ()=>{
+  if(!out.innerHTML.trim()){ alert('Kein Ergebnis zum Speichern.'); return; }
+  const html = '<!doctype html>\n<meta charset="utf-8">\n' + out.innerHTML;
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'output.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>
