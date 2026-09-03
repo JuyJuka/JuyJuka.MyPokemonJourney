@@ -2,12 +2,12 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<title>Pokémon Journey Editor</title>
+<title>🐉 Pokémon Journey Editor</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   * { box-sizing: border-box; }
   body { font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 0; color: #111; background: #f5f5f5; display: flex; flex-direction: column; height: 100vh; }
-  
+
   .header {
     background: white;
     padding: 15px 20px;
@@ -15,7 +15,7 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
   }
   h1 { font-size: 1.3rem; margin: 0 0 10px 0; }
-  
+
   .xml-input-row {
     display: flex;
     gap: 12px;
@@ -30,7 +30,7 @@
     margin: 0;
     flex: 1;
   }
-  
+
   .tabs {
     display: flex;
     gap: 10px;
@@ -55,7 +55,7 @@
   .tab-btn:hover {
     background: #f0f0f0;
   }
-  
+
   .content-area {
     flex: 1;
     display: flex;
@@ -71,15 +71,19 @@
   .tab-content.active {
     display: flex;
   }
-  
+
   .viewer-tab {
     flex-direction: column;
   }
 
-  .editor-tab {
-    flex-direction: column;
+  /* Editor-Reiter braucht eigenes Scrollverhalten (aus index_editor.html: body-Scroll) */
+  #editor {
+    overflow-y: auto;
   }
-  
+  #editor .inner {
+    padding: 20px;
+  }
+
   .buttons {
     display: flex;
     gap: 8px;
@@ -142,25 +146,27 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
-  #status {
+
+  /* Status-Anzeige (Selektor korrigiert: Original zielte auf #status, tatsächliche
+     IDs sind #viewer-status / #editor-status) */
+  #viewer-status, #editor-status {
     padding: 8px 12px;
     font-size: 0.9rem;
     margin-left: auto;
   }
-  #status.success {
+  #viewer-status.success, #editor-status.success {
     background: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
     border-radius: 4px;
   }
-  #status.error {
+  #viewer-status.error, #editor-status.error {
     background: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
     border-radius: 4px;
   }
-  #status.info {
+  #viewer-status.info, #editor-status.info {
     background: #d1ecf1;
     color: #0c5460;
     border: 1px solid #bee5eb;
@@ -173,13 +179,11 @@
     align-items: center;
     flex-wrap: wrap;
   }
-
   .viewer-controls label {
     font-size: 0.9rem;
     font-weight: 500;
     margin: 0;
   }
-
   .viewer-controls input[type=file] {
     margin: 0;
   }
@@ -190,7 +194,6 @@
     padding: 20px;
     background: white;
   }
-
   #output {
     border: 1px solid #ddd;
     padding: 15px;
@@ -207,244 +210,93 @@
     min-height: 300px;
   }
 
-  .editor-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    background: white;
+  /* ==== Editor-Reiter Styles (1:1 aus index_editor.html) ==== */
+  .toolbar {
+    background: #f1f3f5;
+    padding: 10px;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
   }
-
-  .section {
-    margin-bottom: 20px;
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .section-header {
-    background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
-    color: white;
-    padding: 12px 16px;
-    font-weight: bold;
+  .nav-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: #eef3f8;
+    padding: 10px;
+    border: 1px solid #c4d4e3;
+    border-radius: 5px;
+    margin-bottom: 15px;
   }
-
-  .section-header:hover {
-    background: linear-gradient(135deg, #0052a3 0%, #003d7a 100%);
+  .editor-section {
+    border: 1px solid #d0d4d9;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    background: #fafafa;
   }
-
-  .section-header .remove-btn {
-    background: #ff6b6b;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .section-header .remove-btn:hover {
-    background: #ff5252;
-  }
-
-  .section-content {
-    padding: 16px;
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 6px;
-    color: #333;
-  }
-
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.95rem;
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 60px;
-  }
-
-  .form-group input:focus,
-  .form-group select:focus,
-  .form-group textarea:focus {
-    outline: none;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
-  }
-
-  .hint {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 4px;
-    font-style: italic;
-  }
-
-  .subsections {
-    margin-top: 16px;
-    border-top: 1px solid #ddd;
-    padding-top: 16px;
-  }
-
-  .add-btn {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
+  .editor-section .form-group {
     margin-bottom: 12px;
   }
-
-  .add-btn:hover {
-    background: #218838;
+  .editor-section .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 14px;
   }
-
-  .item-list {
-    margin-top: 12px;
-    padding: 12px;
-    background: white;
-    border: 1px solid #ddd;
+  .editor-section .form-group input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #bdc3c7;
     border-radius: 4px;
+    box-sizing: border-box;
   }
-
-  .item-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    align-items: center;
-  }
-
-  .item-row input {
-    flex: 1;
-  }
-
-  .item-row button {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-  }
-
   .pokemon-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
   }
-
-  @media (max-width: 1400px) {
-    .pokemon-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
   .pokemon-card {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid #d0d4d9;
+    padding: 10px;
+    border-radius: 5px;
+    background: #fff;
+    position: relative;
   }
-
-  .pokemon-card-header {
+  .pokemon-card .card-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .pokemon-card-header h4 {
-    margin: 0;
-    font-size: 0.9rem;
-  }
-
-  .pokemon-card-header .remove-btn {
-    background: #ff6b6b;
-    color: white;
-    border: none;
-    padding: 2px 6px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.7rem;
-  }
-
-  .pokemon-card-header .remove-btn:hover {
-    background: #ff5252;
-  }
-
-  .pokemon-card .form-group {
-    margin-bottom: 10px;
-  }
-
-  .pokemon-card .form-group label {
-    margin-bottom: 4px;
-    font-size: 0.85rem;
-  }
-
-  .pokemon-card .form-group input,
-  .pokemon-card .form-group select {
-    font-size: 0.85rem;
-  }
-
-  .team-navigation {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 16px;
-    margin-top: 16px;
-  }
-
-  .team-navigation button {
-    padding: 8px 12px;
-  }
-
-  .team-info {
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-    padding: 10px 12px;
-    border-radius: 4px;
-    margin-left: auto;
-  }
-
-  .empty-state {
-    color: #999;
-    text-align: center;
-    padding: 40px 20px;
-  }
-
-  .breadcrumb {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-bottom: 16px;
-    font-size: 0.95rem;
-  }
-
-  .breadcrumb span {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 8px;
     color: #666;
   }
-
-  .breadcrumb strong {
-    color: #0066cc;
+  .danger-btn {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+  }
+  .danger-btn:hover {
+    background: #f5c6cb;
+  }
+  .action-btn {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+  }
+  .action-btn:hover {
+    background: #c3e6cb;
+  }
+  .item-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    align-items: center;
   }
 </style>
 </head>
@@ -463,7 +315,7 @@
   </div>
 
   <div class="content-area">
-    <!-- VIEWER TAB -->
+    <!-- VIEWER TAB (Markup 1:1 aus index_viwer.html) -->
     <div id="viewer" class="tab-content viewer-tab active">
       <div class="buttons">
         <div class="viewer-controls">
@@ -473,68 +325,60 @@
         </div>
         <div id="viewer-status"></div>
       </div>
-      
+
       <div class="viewer-output">
         <div id="output" class="empty">Laden Sie eine XML-Datei und klicken Sie auf "Transformation anwenden"</div>
       </div>
     </div>
 
-    <!-- EDITOR TAB -->
-    <div id="editor" class="tab-content editor-tab">
-      <div class="buttons">
-        <button id="newProject" class="success">✨ Neues Projekt</button>
-        <button id="addGame" class="success">➕ Spiel hinzufügen</button>
-        <button id="downloadXml" class="primary">💾 Projekt herunterladen</button>
-        <button id="copyXml" class="primary">📋 XML kopieren</button>
-        <div id="editor-status"></div>
-      </div>
-
-      <div class="editor-content" id="editorContent">
-        <p class="empty-state">Klicke "Neues Projekt" oder lade eine vorhandene XML-Datei</p>
+    <!-- EDITOR TAB (Markup 1:1 aus index_editor.html) -->
+    <div id="editor" class="tab-content">
+      <div class="inner">
+        <div class="toolbar">
+          <button onclick="addTrainer()" class="action-btn">👤 Neuen Trainer hinzufügen</button>
+          <button onclick="addSpiel()" class="action-btn">➕ Neues Spiel hinzufügen</button>
+          <button onclick="downloadXml()" style="background:#34495e; color:#fff;">💾 Projekt herunterladen</button>
+          <button onclick="copyXmlToClipboard()">📋 XML kopieren</button>
+          <button onclick="createNewProject()" class="danger-btn">✨ Neues Projekt</button>
+        </div>
+        <div class="nav-toolbar">
+          <button onclick="navigate(-1)">◀ Zurück</button>
+          <span id="navInfo" style="font-weight:bold;">Keine Teams vorhanden</span>
+          <button onclick="navigate(1)">Weiter ▶</button>
+        </div>
+        <div id="editorForm"></div>
       </div>
     </div>
   </div>
 
 <script>
-// Pokemon Liste (gekürzt - würde in Produktion erweitert)
-const POKEMON_LIST = [
-  { id: 1, name: 'Bisaknosp' },
-  { id: 2, name: 'Bisakoll' },
-  { id: 3, name: 'Bisaflor' },
-  { id: 4, name: 'Glumanda' },
-  { id: 5, name: 'Glutexo' },
-  { id: 6, name: 'Glurak' },
-  { id: 7, name: 'Schiggy' },
-  { id: 8, name: 'Schillok' },
-  { id: 9, name: 'Turtok' },
-  { id: 25, name: 'Pikachu' },
-  { id: 26, name: 'Raichu' },
-];
+/* ==============================================================
+   GEMEINSAMER ZUSTAND
+   Beide Reiter arbeiten auf demselben XML-DOM-Dokument (xmlDoc).
+   -> Editor-Funktionen (aus index_editor.html) verändern xmlDoc direkt.
+   -> Viewer-Funktionen (aus index_viwer.html) lesen xmlDoc zum Transformieren
+      (statt wie im Original ueber projectData/generateXML()).
+   ============================================================== */
+let xmlDoc = null;
+let xslDoc = null;
+let activeTeamIndex = 0;
 
-const HELD_ITEMS = [
-  'Lebensbeeren', 'Attackenbeeren', 'Auslöser-Beeren', 'Überreste', 
-  'Fokusgurt', 'Eviolith', 'Assaultweste', 'Bandana', 'Entsafter'
-];
-
-let projectData = null;
-let currentGameIdx = null;
-let currentTrainerIdx = null;
-let currentTeamIdx = null;
-
-// ============ TAB SWITCHING ============
+// ============ TAB SWITCHING (aus index_viwer.html) ============
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const tabName = btn.dataset.tab;
-    
+
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
+
     btn.classList.add('active');
     document.getElementById(tabName).classList.add('active');
+
+    if (tabName === 'editor') renderEditor();
   });
 });
 
-// ============ UTILITY FUNCTIONS ============
+// ============ UTILITY (aus index_viwer.html) ============
 function showStatus(message, type = 'info', tabName = 'editor') {
   const statusEl = document.getElementById(tabName + '-status');
   if (statusEl) {
@@ -543,776 +387,37 @@ function showStatus(message, type = 'info', tabName = 'editor') {
   }
 }
 
-function readFile(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(r.error);
-    r.readAsText(file);
-  });
-}
+// ============ Projekt laden (Kopfzeile, gemeinsam fuer beide Reiter) ============
+document.getElementById('xmlLoad').addEventListener('change', function (e) {
+  if (!e.target.files.length) return;
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    try {
+      xmlDoc = new DOMParser().parseFromString(ev.target.result, "text/xml");
+      activeTeamIndex = 0;
+      renderEditor();
 
-function generateXML(data) {
-  let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-  xml += '<Spielsammlung>\n';
-  
-  if (data.games) {
-    data.games.forEach(game => {
-      xml += `  <Spiel Name="${escapeXml(game.name)}">\n`;
-      
-      if (game.trainers) {
-        game.trainers.forEach(trainer => {
-          xml += `    <Trainer>\n`;
-          xml += `      <Name>${escapeXml(trainer.name)}</Name>\n`;
-          xml += `      <Text>${escapeXml(trainer.text)}</Text>\n`;
-          
-          if (trainer.teams) {
-            trainer.teams.forEach(team => {
-              xml += `      <Team>\n`;
-              xml += `        <Name>${escapeXml(team.name)}</Name>\n`;
-              xml += `        <Markierung>${escapeXml(team.markierung)}</Markierung>\n`;
-              
-              if (team.pokemon) {
-                team.pokemon.forEach(pkmn => {
-                  xml += `        <Pokemon>\n`;
-                  xml += `          <Name>${escapeXml(pkmn.name)}</Name>\n`;
-                  xml += `          <Rasse>\n`;
-                  xml += `            <ID>${escapeXml(pkmn.rasse.id)}</ID>\n`;
-                  xml += `            <Name>${escapeXml(pkmn.rasse.name)}</Name>\n`;
-                  if (pkmn.rasse.img) {
-                    xml += `            <IMG>${escapeXml(pkmn.rasse.img)}</IMG>\n`;
-                  }
-                  xml += `          </Rasse>\n`;
-                  
-                  if (pkmn.items && pkmn.items.length > 0) {
-                    pkmn.items.forEach(item => {
-                      xml += `          <Item>${escapeXml(item)}</Item>\n`;
-                    });
-                  }
-                  
-                  xml += `        </Pokemon>\n`;
-                });
-              }
-              
-              xml += `      </Team>\n`;
-            });
-          }
-          
-          xml += `    </Trainer>\n`;
-        });
-      }
-      
-      xml += `  </Spiel>\n`;
-    });
-  }
-  
-  xml += '</Spielsammlung>';
-  return xml;
-}
+      const output = document.getElementById('output');
+      output.textContent = 'Projekt geladen. Klicken Sie auf "Transformation anwenden".';
+      output.classList.add('empty');
 
-function escapeXml(str) {
-  if (!str) return '';
-  return str.replace(/[<>&'"]/g, function(c) {
-    switch (c) {
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '&': return '&amp;';
-      case "'": return '&apos;';
-      case '"': return '&quot;';
-    }
-  });
-}
-
-function parseXML(xmlString) {
-  const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
-  
-  if (xmlDoc.querySelector('parsererror')) {
-    throw new Error('XML-Parsing-Fehler');
-  }
-  
-  const data = { games: [] };
-  
-  const spiels = xmlDoc.querySelectorAll('Spiel');
-  spiels.forEach(spiel => {
-    const game = {
-      name: spiel.getAttribute('Name') || '',
-      trainers: []
-    };
-    
-    const trainers = spiel.querySelectorAll(':scope > Trainer');
-    trainers.forEach(trainer => {
-      const trainerData = {
-        name: trainer.querySelector(':scope > Name')?.textContent || '',
-        text: trainer.querySelector(':scope > Text')?.textContent || '',
-        teams: []
-      };
-      
-      const teams = trainer.querySelectorAll(':scope > Team');
-      teams.forEach(team => {
-        const teamData = {
-          name: team.querySelector(':scope > Name')?.textContent || '',
-          markierung: team.querySelector(':scope > Markierung')?.textContent || '',
-          pokemon: []
-        };
-        
-        const pokemon = team.querySelectorAll(':scope > Pokemon');
-        pokemon.forEach(pkmn => {
-          const pkmnData = {
-            name: pkmn.querySelector(':scope > Name')?.textContent || '',
-            rasse: {
-              id: pkmn.querySelector(':scope > Rasse > ID')?.textContent || '',
-              name: pkmn.querySelector(':scope > Rasse > Name')?.textContent || '',
-              img: pkmn.querySelector(':scope > Rasse > IMG')?.textContent || ''
-            },
-            items: []
-          };
-          
-          const items = pkmn.querySelectorAll(':scope > Item');
-          items.forEach(item => {
-            pkmnData.items.push(item.textContent);
-          });
-          
-          teamData.pokemon.push(pkmnData);
-        });
-        
-        trainerData.teams.push(teamData);
-      });
-      
-      game.trainers.push(trainerData);
-    });
-    
-    data.games.push(game);
-  });
-  
-  return data;
-}
-
-// ============ EDITOR RENDERING ============
-
-function renderEditor() {
-  const content = document.getElementById('editorContent');
-  
-  if (!projectData || !projectData.games || projectData.games.length === 0) {
-    content.innerHTML = '<p class="empty-state">Klicke "Neues Projekt" oder lade eine vorhandene XML-Datei</p>';
-    return;
-  }
-  
-  // Wenn kein Team ausgewählt, zeige die Übersicht
-  if (currentGameIdx === null || currentTrainerIdx === null || currentTeamIdx === null) {
-    content.innerHTML = '';
-    projectData.games.forEach((game, gameIdx) => {
-      content.appendChild(renderGameOverview(game, gameIdx));
-    });
-  } else {
-    // Zeige nur das ausgewählte Team mit seinen Eltern
-    content.innerHTML = '';
-    const game = projectData.games[currentGameIdx];
-    const trainer = game.trainers[currentTrainerIdx];
-    const team = trainer.teams[currentTeamIdx];
-    
-    content.appendChild(renderGameSection(game, currentGameIdx, true));
-    content.appendChild(renderTrainerSection(trainer, currentTrainerIdx, currentGameIdx, true));
-    content.appendChild(renderTeamSection(team, currentTeamIdx, currentGameIdx, currentTrainerIdx));
-  }
-}
-
-function renderGameOverview(game, gameIdx) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.innerHTML = `<span>🎮 Spiel: ${game.name || '(Unbenannt)'}</span>`;
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-btn small';
-  removeBtn.textContent = '🗑️ Entfernen';
-  removeBtn.onclick = (e) => {
-    e.stopPropagation();
-    projectData.games.splice(gameIdx, 1);
-    renderEditor();
-  };
-  header.appendChild(removeBtn);
-  
-  const content = document.createElement('div');
-  content.className = 'section-content';
-  
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Spielname</label><input type="text" value="${game.name}" placeholder="z.B. Pokémon Rot">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    game.name = e.target.value;
-  };
-  content.appendChild(nameGroup);
-  
-  const trainersDiv = document.createElement('div');
-  trainersDiv.className = 'subsections';
-  
-  const addTrainerBtn = document.createElement('button');
-  addTrainerBtn.className = 'add-btn';
-  addTrainerBtn.textContent = '➕ Trainer hinzufügen';
-  addTrainerBtn.onclick = () => {
-    if (!game.trainers) game.trainers = [];
-    game.trainers.push({
-      name: '',
-      text: '',
-      teams: []
-    });
-    renderEditor();
-  };
-  trainersDiv.appendChild(addTrainerBtn);
-  
-  const trainersTitle = document.createElement('h3');
-  trainersTitle.textContent = '👤 Trainer';
-  trainersDiv.appendChild(trainersTitle);
-  
-  if (!game.trainers) game.trainers = [];
-  
-  if (game.trainers.length > 0) {
-    game.trainers.forEach((trainer, trainerIdx) => {
-      trainersDiv.appendChild(renderTrainerOverviewItem(trainer, trainerIdx, gameIdx));
-    });
-  }
-  
-  content.appendChild(trainersDiv);
-  
-  section.appendChild(header);
-  section.appendChild(content);
-  return section;
-}
-
-function renderTrainerOverviewItem(trainer, trainerIdx, gameIdx) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.style.backgroundColor = '#6c63ff';
-  header.innerHTML = `<span>👤 Trainer: ${trainer.name || '(Unbenannt)'}</span>`;
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-btn small';
-  removeBtn.textContent = '🗑️ Entfernen';
-  removeBtn.onclick = (e) => {
-    e.stopPropagation();
-    projectData.games[gameIdx].trainers.splice(trainerIdx, 1);
-    renderEditor();
-  };
-  header.appendChild(removeBtn);
-  
-  const content = document.createElement('div');
-  content.className = 'section-content';
-  
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Name</label><input type="text" value="${trainer.name}" placeholder="z.B. Perdita">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    trainer.name = e.target.value;
-  };
-  content.appendChild(nameGroup);
-  
-  const textGroup = document.createElement('div');
-  textGroup.className = 'form-group';
-  textGroup.innerHTML = `
-    <label>Beschreibung</label>
-    <textarea placeholder="z.B. Purpur, Mono-Run: Fee"></textarea>
-    <div class="hint">Beispiel: Purpur, Mono-Run: Fee</div>
-  `;
-  const textInput = textGroup.querySelector('textarea');
-  textInput.value = trainer.text || '';
-  textInput.onchange = (e) => {
-    trainer.text = e.target.value;
-  };
-  content.appendChild(textGroup);
-  
-  const teamsDiv = document.createElement('div');
-  teamsDiv.className = 'subsections';
-  
-  const addTeamBtn = document.createElement('button');
-  addTeamBtn.className = 'add-btn';
-  addTeamBtn.textContent = '➕ Team hinzufügen';
-  addTeamBtn.onclick = () => {
-    if (!trainer.teams) trainer.teams = [];
-    trainer.teams.push({
-      name: '',
-      markierung: 'GGGGGG',
-      pokemon: []
-    });
-    renderEditor();
-  };
-  teamsDiv.appendChild(addTeamBtn);
-  
-  const teamsTitle = document.createElement('h3');
-  teamsTitle.textContent = '🎯 Teams';
-  teamsDiv.appendChild(teamsTitle);
-  
-  if (!trainer.teams) trainer.teams = [];
-  
-  if (trainer.teams.length > 0) {
-    trainer.teams.forEach((team, teamIdx) => {
-      teamsDiv.appendChild(renderTeamListItem(team, teamIdx, gameIdx, trainerIdx));
-    });
-  }
-  
-  content.appendChild(teamsDiv);
-  
-  section.appendChild(header);
-  section.appendChild(content);
-  return section;
-}
-
-function renderTeamListItem(team, teamIdx, gameIdx, trainerIdx) {
-  const div = document.createElement('div');
-  div.style.display = 'flex';
-  div.style.justifyContent = 'space-between';
-  div.style.alignItems = 'center';
-  div.style.padding = '8px 12px';
-  div.style.background = '#fff';
-  div.style.border = '1px solid #ddd';
-  div.style.borderRadius = '4px';
-  div.style.marginBottom = '8px';
-  div.style.cursor = 'pointer';
-  
-  div.innerHTML = `<span>🎯 ${team.name || '(Unbenannt)'}</span>`;
-  
-  const btnGroup = document.createElement('div');
-  btnGroup.style.display = 'flex';
-  btnGroup.style.gap = '4px';
-  
-  const editBtn = document.createElement('button');
-  editBtn.className = 'primary small';
-  editBtn.textContent = '✏️ Bearbeiten';
-  editBtn.onclick = (e) => {
-    e.stopPropagation();
-    currentGameIdx = gameIdx;
-    currentTrainerIdx = trainerIdx;
-    currentTeamIdx = teamIdx;
-    renderEditor();
-  };
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'danger small';
-  removeBtn.textContent = '🗑️';
-  removeBtn.onclick = (e) => {
-    e.stopPropagation();
-    projectData.games[gameIdx].trainers[trainerIdx].teams.splice(teamIdx, 1);
-    renderEditor();
-  };
-  
-  btnGroup.appendChild(editBtn);
-  btnGroup.appendChild(removeBtn);
-  div.appendChild(btnGroup);
-  
-  return div;
-}
-
-function renderGameSection(game, gameIdx, compact = false) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.innerHTML = `<span>🎮 Spiel: ${game.name || '(Unbenannt)'}</span>`;
-  
-  const content = document.createElement('div');
-  content.className = 'section-content';
-  
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Spielname</label><input type="text" value="${game.name}" placeholder="z.B. Pokémon Rot">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    game.name = e.target.value;
-  };
-  content.appendChild(nameGroup);
-  
-  section.appendChild(header);
-  section.appendChild(content);
-  return section;
-}
-
-function renderTrainerSection(trainer, trainerIdx, gameIdx, compact = false) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.style.backgroundColor = '#6c63ff';
-  header.innerHTML = `<span>👤 Trainer: ${trainer.name || '(Unbenannt)'}</span>`;
-  
-  const content = document.createElement('div');
-  content.className = 'section-content';
-  
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Name</label><input type="text" value="${trainer.name}" placeholder="z.B. Perdita">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    trainer.name = e.target.value;
-  };
-  content.appendChild(nameGroup);
-  
-  const textGroup = document.createElement('div');
-  textGroup.className = 'form-group';
-  textGroup.innerHTML = `
-    <label>Beschreibung</label>
-    <textarea placeholder="z.B. Purpur, Mono-Run: Fee"></textarea>
-    <div class="hint">Beispiel: Purpur, Mono-Run: Fee</div>
-  `;
-  const textInput = textGroup.querySelector('textarea');
-  textInput.value = trainer.text || '';
-  textInput.onchange = (e) => {
-    trainer.text = e.target.value;
-  };
-  content.appendChild(textGroup);
-  
-  section.appendChild(header);
-  section.appendChild(content);
-  return section;
-}
-
-function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
-  const section = document.createElement('div');
-  section.className = 'section';
-  
-  const header = document.createElement('div');
-  header.className = 'section-header';
-  header.style.backgroundColor = '#ff6b6b';
-  header.innerHTML = `<span>🎯 Team: ${team.name || '(Unbenannt)'}</span>`;
-  
-  const content = document.createElement('div');
-  content.className = 'section-content';
-  
-  // Breadcrumb
-  const breadcrumb = document.createElement('div');
-  breadcrumb.className = 'breadcrumb';
-  const trainer = projectData.games[gameIdx].trainers[trainerIdx];
-  breadcrumb.innerHTML = `
-    <span>${projectData.games[gameIdx].name} /</span>
-    <span>${trainer.name} /</span>
-    <strong>Team ${teamIdx + 1} von ${trainer.teams.length}</strong>
-  `;
-  content.appendChild(breadcrumb);
-  
-  // Name
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Team-Name</label><input type="text" value="${team.name}">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    team.name = e.target.value;
-  };
-  content.appendChild(nameGroup);
-  
-  // Markierung
-  const markGroup = document.createElement('div');
-  markGroup.className = 'form-group';
-  markGroup.innerHTML = `
-    <label>Markierung (6 Zeichen: G=Grau, B=Blau, R=Rot)</label>
-    <input type="text" maxlength="6" value="${team.markierung}" placeholder="GGGGGG">
-    <div class="hint">Beispiel: GBGBRR</div>
-  `;
-  markGroup.querySelector('input').onchange = (e) => {
-    team.markierung = e.target.value.toUpperCase();
-  };
-  content.appendChild(markGroup);
-  
-  // Team Navigation
-  const navDiv = document.createElement('div');
-  navDiv.className = 'team-navigation';
-  
-  // Find current team position
-  let totalTeams = 0;
-  let currentPosition = 0;
-  
-  for (let g = 0; g < projectData.games.length; g++) {
-    for (let t = 0; t < projectData.games[g].trainers.length; t++) {
-      for (let tm = 0; tm < projectData.games[g].trainers[t].teams.length; tm++) {
-        if (g === gameIdx && t === trainerIdx && tm === teamIdx) {
-          currentPosition = totalTeams;
-        }
-        totalTeams++;
-      }
-    }
-  }
-  
-  const prevBtn = document.createElement('button');
-  prevBtn.className = 'secondary';
-  prevBtn.textContent = '⬅️ Vorheriges Team';
-  prevBtn.disabled = currentPosition === 0;
-  prevBtn.onclick = () => {
-    navigateToPreviousTeam(gameIdx, trainerIdx, teamIdx);
-  };
-  
-  const nextBtn = document.createElement('button');
-  nextBtn.className = 'secondary';
-  nextBtn.textContent = 'Nächstes Team ➜';
-  nextBtn.disabled = currentPosition >= totalTeams - 1;
-  nextBtn.onclick = () => {
-    navigateToNextTeam(gameIdx, trainerIdx, teamIdx);
-  };
-  
-  const info = document.createElement('div');
-  info.className = 'team-info';
-  info.textContent = `Team ${currentPosition + 1} von ${totalTeams}`;
-  
-  navDiv.appendChild(prevBtn);
-  navDiv.appendChild(nextBtn);
-  navDiv.appendChild(info);
-  content.appendChild(navDiv);
-  
-  // Pokémon Grid
-  const addPkmnBtn = document.createElement('button');
-  addPkmnBtn.className = 'add-btn';
-  addPkmnBtn.textContent = '➕ Pokémon hinzufügen';
-  content.appendChild(addPkmnBtn);
-  
-  addPkmnBtn.onclick = () => {
-    if (!team.pokemon) team.pokemon = [];
-    team.pokemon.push({
-      name: '',
-      rasse: { id: '', name: '', img: '' },
-      items: []
-    });
-    renderEditor();
-  };
-  
-  const pkmnTitle = document.createElement('h3');
-  pkmnTitle.textContent = '🐉 Pokémon';
-  pkmnTitle.style.marginTop = '20px';
-  content.appendChild(pkmnTitle);
-  
-  const grid = document.createElement('div');
-  grid.className = 'pokemon-grid';
-  
-  if (!team.pokemon) team.pokemon = [];
-  
-  if (team.pokemon.length === 0) {
-    for (let i = 0; i < 6; i++) {
-      const emptyCard = createEmptyPokemonSlot(i, gameIdx, trainerIdx, teamIdx);
-      grid.appendChild(emptyCard);
-    }
-  } else {
-    team.pokemon.forEach((pkmn, pkmnIdx) => {
-      grid.appendChild(renderPokemonCard(pkmn, pkmnIdx, gameIdx, trainerIdx, teamIdx));
-    });
-  }
-  
-  content.appendChild(grid);
-  
-  section.appendChild(header);
-  section.appendChild(content);
-  return section;
-}
-
-function navigateToPreviousTeam(gameIdx, trainerIdx, teamIdx) {
-  if (teamIdx > 0) {
-    currentTeamIdx = teamIdx - 1;
-    renderEditor();
-    return;
-  }
-  
-  if (trainerIdx > 0) {
-    currentTrainerIdx = trainerIdx - 1;
-    currentTeamIdx = projectData.games[gameIdx].trainers[currentTrainerIdx].teams.length - 1;
-    renderEditor();
-    return;
-  }
-  
-  if (gameIdx > 0) {
-    currentGameIdx = gameIdx - 1;
-    currentTrainerIdx = projectData.games[currentGameIdx].trainers.length - 1;
-    currentTeamIdx = projectData.games[currentGameIdx].trainers[currentTrainerIdx].teams.length - 1;
-    renderEditor();
-  }
-}
-
-function navigateToNextTeam(gameIdx, trainerIdx, teamIdx) {
-  const trainer = projectData.games[gameIdx].trainers[trainerIdx];
-  
-  if (teamIdx < trainer.teams.length - 1) {
-    currentTeamIdx = teamIdx + 1;
-    renderEditor();
-    return;
-  }
-  
-  if (trainerIdx < projectData.games[gameIdx].trainers.length - 1) {
-    currentTrainerIdx = trainerIdx + 1;
-    currentTeamIdx = 0;
-    renderEditor();
-    return;
-  }
-  
-  if (gameIdx < projectData.games.length - 1) {
-    currentGameIdx = gameIdx + 1;
-    currentTrainerIdx = 0;
-    currentTeamIdx = 0;
-    renderEditor();
-  }
-}
-
-function createEmptyPokemonSlot(idx, gameIdx, trainerIdx, teamIdx) {
-  const card = document.createElement('div');
-  card.className = 'pokemon-card';
-  card.style.background = '#f0f0f0';
-  card.style.borderStyle = 'dashed';
-  card.style.justifyContent = 'center';
-  card.style.alignItems = 'center';
-  card.innerHTML = `
-    <div style="text-align: center;">
-      <p style="margin: 0 0 8px 0; color: #999;">Slot ${idx + 1}</p>
-      <button class="primary small">➕ Erstellen</button>
-    </div>
-  `;
-  
-  card.querySelector('button').onclick = () => {
-    const team = projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx];
-    if (!team.pokemon) team.pokemon = [];
-    team.pokemon.push({
-      name: '',
-      rasse: { id: '', name: '', img: '' },
-      items: []
-    });
-    renderEditor();
-  };
-  
-  return card;
-}
-
-function renderPokemonCard(pkmn, pkmnIdx, gameIdx, trainerIdx, teamIdx) {
-  const card = document.createElement('div');
-  card.className = 'pokemon-card';
-  
-  const header = document.createElement('div');
-  header.className = 'pokemon-card-header';
-  
-  const title = document.createElement('h4');
-  title.textContent = pkmn.name || `Pokémon ${pkmnIdx + 1}`;
-  header.appendChild(title);
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-btn';
-  removeBtn.textContent = '🗑️';
-  removeBtn.onclick = () => {
-    projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx].pokemon.splice(pkmnIdx, 1);
-    renderEditor();
-  };
-  header.appendChild(removeBtn);
-  
-  card.appendChild(header);
-  
-  // Name
-  const nameGroup = document.createElement('div');
-  nameGroup.className = 'form-group';
-  nameGroup.innerHTML = `<label>Name</label><input type="text" value="${pkmn.name}" placeholder="z.B. Flamme">`;
-  nameGroup.querySelector('input').onchange = (e) => {
-    pkmn.name = e.target.value;
-    title.textContent = e.target.value || `Pokémon ${pkmnIdx + 1}`;
-  };
-  card.appendChild(nameGroup);
-  
-  // Pokémon Species
-  const speciesGroup = document.createElement('div');
-  speciesGroup.className = 'form-group';
-  speciesGroup.innerHTML = `
-    <label>Spezies</label>
-    <select>
-      <option value="">-- Wählen --</option>
-    </select>
-  `;
-  
-  const speciesSelect = speciesGroup.querySelector('select');
-  POKEMON_LIST.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.name}`;
-    if (String(p.id) === String(pkmn.rasse.id)) opt.selected = true;
-    speciesSelect.appendChild(opt);
-  });
-  
-  speciesSelect.onchange = (e) => {
-    if (e.target.value) {
-      const selected = POKEMON_LIST.find(p => String(p.id) === e.target.value);
-      pkmn.rasse.id = String(selected.id);
-      pkmn.rasse.name = selected.name;
+      showStatus('✅ Projekt geladen', 'success', 'viewer');
+    } catch (err) {
+      showStatus('❌ Fehler beim Laden: ' + err.message, 'error', 'viewer');
     }
   };
-  
-  card.appendChild(speciesGroup);
-  
-  // Image URL
-  const imgGroup = document.createElement('div');
-  imgGroup.className = 'form-group';
-  imgGroup.innerHTML = `<label>Bild-URL</label><input type="text" value="${pkmn.rasse.img || ''}" placeholder="https://...">`;
-  imgGroup.querySelector('input').onchange = (e) => {
-    pkmn.rasse.img = e.target.value;
-  };
-  card.appendChild(imgGroup);
-  
-  // Items
-  const itemsDiv = document.createElement('div');
-  itemsDiv.className = 'form-group';
-  itemsDiv.innerHTML = '<label>Items (halten)</label>';
-  
-  const itemsList = document.createElement('div');
-  itemsList.className = 'item-list';
-  
-  if (pkmn.items && pkmn.items.length > 0) {
-    pkmn.items.forEach((item, itemIdx) => {
-      itemsList.appendChild(createItemRow(item, itemIdx, gameIdx, trainerIdx, teamIdx, pkmnIdx));
-    });
-  }
-  
-  const addItemBtn = document.createElement('button');
-  addItemBtn.className = 'add-btn';
-  addItemBtn.style.width = '100%';
-  addItemBtn.textContent = '➕ Item hinzufügen';
-  addItemBtn.onclick = () => {
-    pkmn.items.push('');
-    renderEditor();
-  };
-  
-  itemsList.appendChild(addItemBtn);
-  itemsDiv.appendChild(itemsList);
-  card.appendChild(itemsDiv);
-  
-  return card;
-}
+  reader.readAsText(e.target.files[0]);
+});
 
-function createItemRow(item, itemIdx, gameIdx, trainerIdx, teamIdx, pkmnIdx) {
-  const row = document.createElement('div');
-  row.className = 'item-row';
-  
-  const input = document.createElement('input');
-  input.list = 'item-suggestions';
-  input.value = item;
-  input.placeholder = 'Item eingeben';
-  input.onchange = (e) => {
-    projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx].pokemon[pkmnIdx].items[itemIdx] = e.target.value;
-  };
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'danger small';
-  removeBtn.textContent = 'Entfernen';
-  removeBtn.onclick = () => {
-    projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx].pokemon[pkmnIdx].items.splice(itemIdx, 1);
-    renderEditor();
-  };
-  
-  row.appendChild(input);
-  row.appendChild(removeBtn);
-  return row;
-}
-
-// ============ VIEWER FUNCTIONS ============
-
-let xmlDoc = null;
-let xslDoc = null;
-
+/* ==============================================================
+   VIEWER-FUNKTIONEN (aus index_viwer.html, angepasst auf xmlDoc)
+   ============================================================== */
 document.getElementById('xslFile').addEventListener('change', async (e) => {
   if (!e.target.files.length) return;
   try {
-    const txt = await readFile(e.target.files[0]);
+    const txt = await e.target.files[0].text();
     xslDoc = new DOMParser().parseFromString(txt, 'application/xml');
-    
+
     if (xslDoc.querySelector('parsererror')) {
       showStatus('⚠️ XSL geladen, aber Parsing-Fehler', 'error', 'viewer');
     } else {
@@ -1324,39 +429,30 @@ document.getElementById('xslFile').addEventListener('change', async (e) => {
 });
 
 document.getElementById('apply').addEventListener('click', () => {
-  if (!projectData) {
+  if (!xmlDoc) {
     showStatus('❌ Bitte laden oder erstellen Sie ein Projekt', 'error', 'viewer');
     return;
   }
-  
-  const xmlStr = generateXML(projectData);
-  
+
   try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlStr, 'application/xml');
-    
-    if (doc.querySelector('parsererror')) {
-      showStatus('❌ XML hat Fehler', 'error', 'viewer');
-      return;
-    }
-    
     if (!xslDoc) {
       showStatus('ℹ️ Keine XSL-Datei. Zeige rohe XML', 'info', 'viewer');
+      const xmlStr = new XMLSerializer().serializeToString(xmlDoc);
       const output = document.getElementById('output');
       output.innerHTML = '<pre>' + xmlStr.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
       output.classList.remove('empty');
       return;
     }
-    
+
     const proc = new XSLTProcessor();
     proc.importStylesheet(xslDoc);
-    const frag = proc.transformToFragment(doc, document);
-    
+    const frag = proc.transformToFragment(xmlDoc, document);
+
     const output = document.getElementById('output');
     output.innerHTML = '';
     output.appendChild(frag);
     output.classList.remove('empty');
-    
+
     showStatus('✅ Transformation erfolgreich', 'success', 'viewer');
   } catch (err) {
     showStatus('❌ Fehler: ' + err.message, 'error', 'viewer');
@@ -1365,12 +461,12 @@ document.getElementById('apply').addEventListener('click', () => {
 
 document.getElementById('downloadHtml').addEventListener('click', () => {
   const output = document.getElementById('output');
-  
+
   if (!output.innerHTML.trim() || output.classList.contains('empty')) {
     showStatus('⚠️ Kein Ergebnis zum Speichern', 'error', 'viewer');
     return;
   }
-  
+
   const html = '<!doctype html>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + output.innerHTML;
   const blob = new Blob([html], { type: 'text/html' });
   const a = document.createElement('a');
@@ -1381,88 +477,242 @@ document.getElementById('downloadHtml').addEventListener('click', () => {
   showStatus('📥 HTML heruntergeladen', 'success', 'viewer');
 });
 
-// ============ EDITOR EVENTS ============
+/* ==============================================================
+   EDITOR-FUNKTIONEN (1:1 aus index_editor.html)
+   ============================================================== */
+function createBlankPokemon() {
+  let pkmn = xmlDoc.createElement("Pokemon");
+  let name = xmlDoc.createElement("Name"); name.textContent = "";
+  let rasse = xmlDoc.createElement("Rasse");
+  let rName = xmlDoc.createElement("Name"); rName.textContent = "";
+  let rId = xmlDoc.createElement("ID"); rId.textContent = "";
+  rasse.appendChild(rName); rasse.appendChild(rId);
+  pkmn.appendChild(name); pkmn.appendChild(rasse);
+  return pkmn;
+}
 
-document.getElementById('newProject').addEventListener('click', () => {
-  projectData = {
-    games: [{
-      name: '',
-      trainers: []
-    }]
-  };
-  currentGameIdx = null;
-  currentTrainerIdx = null;
-  currentTeamIdx = null;
+function createBlankTeam() {
+  let team = xmlDoc.createElement("Team");
+  let name = xmlDoc.createElement("Name"); name.textContent = "";
+  let markierung = xmlDoc.createElement("Markierung"); markierung.textContent = "";
+  team.appendChild(name); team.appendChild(markierung);
+  for (let i = 0; i < 6; i++) { team.appendChild(createBlankPokemon()); }
+  return team;
+}
+
+function createBlankTrainer() {
+  let trainer = xmlDoc.createElement("Trainer");
+  let name = xmlDoc.createElement("Name"); name.textContent = "";
+  let text = xmlDoc.createElement("Text"); text.textContent = "";
+  trainer.appendChild(name); trainer.appendChild(text); trainer.appendChild(createBlankTeam());
+  return trainer;
+}
+
+function createBlankSpiel() {
+  let spiel = xmlDoc.createElement("Spiel");
+  spiel.setAttribute("Name", "");
+  spiel.appendChild(createBlankTrainer());
+  return spiel;
+}
+
+function createNewProject() {
+  let parser = new DOMParser();
+  let baseXml = `<?xml version="1.0" encoding="utf-8" ?>\n<?xml-stylesheet type="text/xsl" href="Pokemon Schwert und Schild.xsl"?>\n<root></root>`;
+  xmlDoc = parser.parseFromString(baseXml, "text/xml");
+  xmlDoc.documentElement.appendChild(createBlankSpiel());
+  activeTeamIndex = 0;
   renderEditor();
-  showStatus('✨ Neues Projekt erstellt', 'success', 'editor');
-});
+}
 
-document.getElementById('addGame').addEventListener('click', () => {
-  if (!projectData) projectData = { games: [] };
-  projectData.games.push({
-    name: '',
-    trainers: []
-  });
-  currentGameIdx = null;
-  currentTrainerIdx = null;
-  currentTeamIdx = null;
+function getAllTeams() {
+  if (!xmlDoc) return [];
+  let flatList = [];
+  let spiele = xmlDoc.getElementsByTagName("Spiel");
+  for (let s = 0; s < spiele.length; s++) {
+    let trainerNode = spiele[s].getElementsByTagName("Trainer");
+    for (let t = 0; t < trainerNode.length; t++) {
+      let teams = trainerNode[t].getElementsByTagName("Team");
+      for (let tm = 0; tm < teams.length; tm++) {
+        flatList.push({ spiel: spiele[s], trainer: trainerNode[t], team: teams[tm] });
+      }
+    }
+  }
+  return flatList;
+}
+
+function navigate(dir) {
+  let list = getAllTeams();
+  if (list.length === 0) return;
+  activeTeamIndex += dir;
+  if (activeTeamIndex < 0) activeTeamIndex = 0;
+  if (activeTeamIndex >= list.length) activeTeamIndex = list.length - 1;
   renderEditor();
-  showStatus('➕ Spiel hinzugefügt', 'success', 'editor');
-});
+}
 
-document.getElementById('xmlLoad').addEventListener('change', async (e) => {
-  if (!e.target.files.length) return;
-  try {
-    const text = await e.target.files[0].text();
-    projectData = parseXML(text);
-    currentGameIdx = null;
-    currentTrainerIdx = null;
-    currentTeamIdx = null;
-    renderEditor();
-    showStatus('✅ Projekt geladen', 'success', 'editor');
-  } catch (err) {
-    showStatus('❌ Fehler beim Laden: ' + err.message, 'error', 'editor');
+function addTrainer() {
+  if (!xmlDoc) createNewProject();
+  let list = getAllTeams();
+  if (list.length > 0) {
+    let currentSpiel = list[activeTeamIndex].spiel;
+    let newTrainer = createBlankTrainer();
+    currentSpiel.appendChild(newTrainer);
+    list = getAllTeams();
+    activeTeamIndex = list.findIndex(item => item.trainer === newTrainer);
   }
-});
+  renderEditor();
+}
 
-document.getElementById('downloadXml').addEventListener('click', () => {
-  if (!projectData) {
-    showStatus('⚠️ Kein Projekt geladen', 'error', 'editor');
-    return;
-  }
-  const xml = generateXML(projectData);
-  const blob = new Blob([xml], { type: 'application/xml' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'pokemon-journey.xml';
-  a.click();
-  URL.revokeObjectURL(a.href);
-  showStatus('💾 Projekt heruntergeladen', 'success', 'editor');
-});
+function addSpiel() {
+  if (!xmlDoc) createNewProject();
+  let newSpiel = createBlankSpiel();
+  xmlDoc.documentElement.appendChild(newSpiel);
+  let list = getAllTeams();
+  activeTeamIndex = list.length - 1;
+  renderEditor();
+}
 
-document.getElementById('copyXml').addEventListener('click', async () => {
-  if (!projectData) {
-    showStatus('⚠️ Kein Projekt geladen', 'error', 'editor');
-    return;
-  }
-  const xml = generateXML(projectData);
-  try {
-    await navigator.clipboard.writeText(xml);
-    showStatus('📋 XML kopiert', 'success', 'editor');
-  } catch (err) {
-    showStatus('❌ Fehler beim Kopieren', 'error', 'editor');
-  }
-});
+function currentXmlTarget() { return getAllTeams()[activeTeamIndex]; }
 
-// Create datalist for items
-const dataList = document.createElement('datalist');
-dataList.id = 'item-suggestions';
-HELD_ITEMS.forEach(item => {
-  const option = document.createElement('option');
-  option.value = item;
-  dataList.appendChild(option);
-});
-document.body.appendChild(dataList);
+function getXmlNodeText(parent, tag) {
+  let node = parent.getElementsByTagName(tag);
+  return (node && node.length > 0) ? node[0].textContent : "";
+}
+
+function updateXmlNodeText(parent, tag, val) {
+  let node = parent.getElementsByTagName(tag);
+  if (!node || node.length === 0) {
+    node = xmlDoc.createElement(tag);
+    parent.appendChild(node);
+  } else {
+    node = node[0];
+  }
+  node.textContent = val;
+}
+
+function updatePokemonData(pIdx, field, val) {
+  let pkmn = currentXmlTarget().team.getElementsByTagName("Pokemon")[pIdx];
+  if (field === "Name") {
+    updateXmlNodeText(pkmn, field, val);
+  } else {
+    let rasse = pkmn.getElementsByTagName("Rasse");
+    let targetRasse = (rasse && rasse.length > 0) ? rasse[0] : null;
+    if (!targetRasse) {
+      targetRasse = xmlDoc.createElement("Rasse");
+      pkmn.appendChild(targetRasse);
+    }
+    updateXmlNodeText(targetRasse, field === "RasseName" ? "Name" : "ID", val);
+  }
+}
+
+function addItemNode(pIdx) {
+  let pkmn = currentXmlTarget().team.getElementsByTagName("Pokemon")[pIdx];
+  let item = xmlDoc.createElement("Item");
+  item.textContent = "";
+  pkmn.appendChild(item);
+  renderEditor();
+}
+
+function removeItemNode(pIdx, itemIdx) {
+  let pkmn = currentXmlTarget().team.getElementsByTagName("Pokemon")[pIdx];
+  let items = pkmn.getElementsByTagName("Item");
+  if (items[itemIdx]) { pkmn.removeChild(items[itemIdx]); }
+  renderEditor();
+}
+
+function updateItemText(pIdx, itemIdx, val) {
+  let pkmn = currentXmlTarget().team.getElementsByTagName("Pokemon")[pIdx];
+  let items = pkmn.getElementsByTagName("Item");
+  if (items[itemIdx]) { items[itemIdx].textContent = val; }
+}
+
+function addTeamToTrainer() { let nt = createBlankTeam(); currentXmlTarget().trainer.appendChild(nt); let list = getAllTeams(); activeTeamIndex = list.findIndex(i => i.team === nt); renderEditor(); }
+function addPokemonSlot() { currentXmlTarget().team.appendChild(createBlankPokemon()); renderEditor(); }
+function removePokemon(pIdx) { let team = currentXmlTarget().team; team.removeChild(team.getElementsByTagName("Pokemon")[pIdx]); renderEditor(); }
+
+function removeNode(type) {
+  if (!confirm("Dieses Element wirklich löschen?")) return;
+  let cur = currentXmlTarget();
+  let el = type === 'spiel' ? cur.spiel : (type === 'trainer' ? cur.trainer : cur.team);
+  el.parentNode.removeChild(el);
+  navigate(-1);
+}
+
+function renderEditor() {
+  if (!xmlDoc) createNewProject();
+  let list = getAllTeams(), container = document.getElementById("editorForm");
+  container.innerHTML = "";
+  if (list.length === 0) { document.getElementById("navInfo").textContent = "Keine Teams vorhanden"; return; }
+  if (activeTeamIndex >= list.length) activeTeamIndex = list.length - 1;
+  document.getElementById("navInfo").textContent = `Team ${activeTeamIndex + 1} von ${list.length}`;
+
+  let current = list[activeTeamIndex];
+  let html = `
+          <div class="editor-section">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><h3>🎮 Editions-Daten</h3><button class="danger-btn" onclick="removeNode('spiel')">Spiel löschen</button></div>
+              <div class="form-group"><label>Spiel / Edition Name</label><input type="text" value="${current.spiel.getAttribute("Name") || ''}" placeholder="Pokemon Rot" oninput="currentXmlTarget().spiel.setAttribute('Name', this.value)"></div>
+          </div>
+          <div class="editor-section">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><h3>👤 Trainer-Daten</h3><button class="danger-btn" onclick="removeNode('trainer')">Trainer löschen</button></div>
+              <div class="form-group"><label>Trainer Name</label><input type="text" value="${getXmlNodeText(current.trainer, 'Name')}" placeholder="Perdita" oninput="updateXmlNodeText(currentXmlTarget().trainer, 'Name', this.value)"></div>
+              <div class="form-group"><label>Beschreibung / Mono-Run Text</label><input type="text" value="${getXmlNodeText(current.trainer, 'Text')}" placeholder="Schwert, Mono-Run: Fee" oninput="updateXmlNodeText(currentXmlTarget().trainer, 'Text', this.value)"></div>
+          </div>
+          <div class="editor-section">
+              <div style="display:flex; justify-content:space-between; align-items:center;"><h3>👥 Team-Konfiguration</h3><div><button onclick="addTeamToTrainer()" class="action-btn" style="margin-right:5px;">+ Zusätzliches Team</button><button class="danger-btn" onclick="removeNode('team')">Team löschen</button></div></div>
+              <div class="form-group"><label>Team Name</label><input type="text" value="${getXmlNodeText(current.team, 'Name')}" oninput="updateXmlNodeText(currentXmlTarget().team, 'Name', this.value)"></div>
+              <div class="form-group"><label>Markierung</label><input type="text" value="${getXmlNodeText(current.team, 'Markierung')}" placeholder="GGGGGGGG (G = grau, R = rot, B = blau)" oninput="updateXmlNodeText(currentXmlTarget().team, 'Markierung', this.value)"></div>
+              <h4>🐾 Pokémon im Team</h4><div class="pokemon-grid">`;
+
+  let pokemons = current.team.getElementsByTagName("Pokemon");
+  for (let p = 0; p < pokemons.length; p++) {
+    let pkmn = pokemons[p], ras = pkmn.getElementsByTagName("Rasse");
+    let items = pkmn.getElementsByTagName("Item");
+
+    let currentRasse = (ras && ras.length > 0) ? ras[0] : null;
+    let rasseNameTxt = currentRasse ? getXmlNodeText(currentRasse, 'Name') : '';
+    let rasseIdTxt = currentRasse ? getXmlNodeText(currentRasse, 'ID') : '';
+
+    html += `
+          <div class="pokemon-card">
+              <div class="card-header"><span>Slot ${p + 1}</span><button class="danger-btn" style="padding:2px 6px; font-size:10px;" onclick="removePokemon(${p})">✕</button></div>
+              <div class="form-group"><label>Spitzname</label><input type="text" value="${getXmlNodeText(pkmn, 'Name')}" oninput="updatePokemonData(${p}, 'Name', this.value)"></div>
+              <div class="form-group"><label>Rasse Name</label><input type="text" value="${rasseNameTxt}" oninput="updatePokemonData(${p}, 'RasseName', this.value)"></div>
+              <div class="form-group"><label>Rasse ID</label><input type="text" value="${rasseIdTxt}" oninput="updatePokemonData(${p}, 'RasseID', this.value)"></div>
+
+              <div class="form-group">
+                  <label>Items</label>
+                  <div id="items-container-${p}">`;
+
+    for (let i = 0; i < items.length; i++) {
+      html += `
+                      <div class="item-row">
+                          <input type="text" value="${items[i].textContent}" oninput="updateItemText(${p}, ${i}, this.value)">
+                          <button class="danger-btn" style="padding:3px 7px;" onclick="removeItemNode(${p}, ${i})">✕</button>
+                      </div>`;
+    }
+
+    html += `   </div>
+                  <button class="action-btn" style="padding:2px 6px; font-size:11px; margin-top:5px;" onclick="addItemNode(${p})">+ Item hinzufügen</button>
+              </div>
+          </div>`;
+  }
+  html += `</div><button onclick="addPokemonSlot()" class="action-btn" style="margin-top:15px;">+ Pokémon-Slot hinzufügen</button></div>`;
+  container.innerHTML = html;
+}
+
+function downloadXml() {
+  let serializer = new XMLSerializer().serializeToString(xmlDoc);
+  let link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([serializer], { type: "text/xml;charset=utf-8" }));
+  link.download = "PokemonReise.xml"; link.click();
+}
+
+function copyXmlToClipboard() {
+  let serializer = new XMLSerializer().serializeToString(xmlDoc);
+  navigator.clipboard.writeText(serializer).then(() => { alert("XML kopiert!"); });
+}
+
+// Editor beim Start initialisieren (wie in index_editor.html)
+createNewProject();
 </script>
 </body>
 </html>
