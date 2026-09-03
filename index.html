@@ -394,7 +394,8 @@ document.getElementById('xmlLoad').addEventListener('change', function (e) {
   reader.onload = function (ev) {
     try {
       xmlDoc = new DOMParser().parseFromString(ev.target.result, "text/xml");
-      activeTeamIndex = 0;
+      let list = getAllTeams();
+      activeTeamIndex = list.length > 0 ? list.length - 1 : 0;
       renderEditor();
 
       const output = document.getElementById('output');
