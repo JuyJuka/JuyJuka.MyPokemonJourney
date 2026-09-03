@@ -126,6 +126,14 @@
   button.danger:hover {
     background: #a02020;
   }
+  button.secondary {
+    background: #6c757d;
+    color: white;
+    border-color: #6c757d;
+  }
+  button.secondary:hover {
+    background: #5a6268;
+  }
   button.small {
     padding: 4px 8px;
     font-size: 0.85rem;
@@ -402,6 +410,7 @@
     gap: 8px;
     align-items: center;
     margin-bottom: 16px;
+    margin-top: 16px;
   }
 
   .team-navigation button {
@@ -420,6 +429,22 @@
     color: #999;
     text-align: center;
     padding: 40px 20px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    font-size: 0.95rem;
+  }
+
+  .breadcrumb span {
+    color: #666;
+  }
+
+  .breadcrumb strong {
+    color: #0066cc;
   }
 </style>
 </head>
@@ -667,19 +692,32 @@ function parseXML(xmlString) {
 
 function renderEditor() {
   const content = document.getElementById('editorContent');
-  content.innerHTML = '';
   
   if (!projectData || !projectData.games || projectData.games.length === 0) {
-    content.innerHTML = '<p class="empty-state">Klicke "Spiel hinzufügen" um zu starten</p>';
+    content.innerHTML = '<p class="empty-state">Klicke "Neues Projekt" oder lade eine vorhandene XML-Datei</p>';
     return;
   }
   
-  projectData.games.forEach((game, gameIdx) => {
-    content.appendChild(renderGameSection(game, gameIdx));
-  });
+  // Wenn kein Team ausgewählt, zeige die Übersicht
+  if (currentGameIdx === null || currentTrainerIdx === null || currentTeamIdx === null) {
+    content.innerHTML = '';
+    projectData.games.forEach((game, gameIdx) => {
+      content.appendChild(renderGameOverview(game, gameIdx));
+    });
+  } else {
+    // Zeige nur das ausgewählte Team mit seinen Eltern
+    content.innerHTML = '';
+    const game = projectData.games[currentGameIdx];
+    const trainer = game.trainers[currentTrainerIdx];
+    const team = trainer.teams[currentTeamIdx];
+    
+    content.appendChild(renderGameSection(game, currentGameIdx, true));
+    content.appendChild(renderTrainerSection(trainer, currentTrainerIdx, currentGameIdx, true));
+    content.appendChild(renderTeamSection(team, currentTeamIdx, currentGameIdx, currentTrainerIdx));
+  }
 }
 
-function renderGameSection(game, gameIdx) {
+function renderGameOverview(game, gameIdx) {
   const section = document.createElement('div');
   section.className = 'section';
   
@@ -700,7 +738,6 @@ function renderGameSection(game, gameIdx) {
   const content = document.createElement('div');
   content.className = 'section-content';
   
-  // Game name input
   const nameGroup = document.createElement('div');
   nameGroup.className = 'form-group';
   nameGroup.innerHTML = `<label>Spielname</label><input type="text" value="${game.name}" placeholder="z.B. Pokémon Rot">`;
@@ -709,7 +746,6 @@ function renderGameSection(game, gameIdx) {
   };
   content.appendChild(nameGroup);
   
-  // Trainers
   const trainersDiv = document.createElement('div');
   trainersDiv.className = 'subsections';
   
@@ -735,7 +771,7 @@ function renderGameSection(game, gameIdx) {
   
   if (game.trainers.length > 0) {
     game.trainers.forEach((trainer, trainerIdx) => {
-      trainersDiv.appendChild(renderTrainerSection(trainer, trainerIdx, gameIdx));
+      trainersDiv.appendChild(renderTrainerOverviewItem(trainer, trainerIdx, gameIdx));
     });
   }
   
@@ -746,7 +782,7 @@ function renderGameSection(game, gameIdx) {
   return section;
 }
 
-function renderTrainerSection(trainer, trainerIdx, gameIdx) {
+function renderTrainerOverviewItem(trainer, trainerIdx, gameIdx) {
   const section = document.createElement('div');
   section.className = 'section';
   
@@ -768,7 +804,6 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   const content = document.createElement('div');
   content.className = 'section-content';
   
-  // Name
   const nameGroup = document.createElement('div');
   nameGroup.className = 'form-group';
   nameGroup.innerHTML = `<label>Name</label><input type="text" value="${trainer.name}" placeholder="z.B. Perdita">`;
@@ -777,7 +812,6 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   };
   content.appendChild(nameGroup);
   
-  // Text
   const textGroup = document.createElement('div');
   textGroup.className = 'form-group';
   textGroup.innerHTML = `
@@ -792,7 +826,6 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   };
   content.appendChild(textGroup);
   
-  // Teams
   const teamsDiv = document.createElement('div');
   teamsDiv.className = 'subsections';
   
@@ -818,11 +851,119 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   
   if (trainer.teams.length > 0) {
     trainer.teams.forEach((team, teamIdx) => {
-      teamsDiv.appendChild(renderTeamSection(team, teamIdx, gameIdx, trainerIdx));
+      teamsDiv.appendChild(renderTeamListItem(team, teamIdx, gameIdx, trainerIdx));
     });
   }
   
   content.appendChild(teamsDiv);
+  
+  section.appendChild(header);
+  section.appendChild(content);
+  return section;
+}
+
+function renderTeamListItem(team, teamIdx, gameIdx, trainerIdx) {
+  const div = document.createElement('div');
+  div.style.display = 'flex';
+  div.style.justifyContent = 'space-between';
+  div.style.alignItems = 'center';
+  div.style.padding = '8px 12px';
+  div.style.background = '#fff';
+  div.style.border = '1px solid #ddd';
+  div.style.borderRadius = '4px';
+  div.style.marginBottom = '8px';
+  div.style.cursor = 'pointer';
+  
+  div.innerHTML = `<span>🎯 ${team.name || '(Unbenannt)'}</span>`;
+  
+  const btnGroup = document.createElement('div');
+  btnGroup.style.display = 'flex';
+  btnGroup.style.gap = '4px';
+  
+  const editBtn = document.createElement('button');
+  editBtn.className = 'primary small';
+  editBtn.textContent = '✏️ Bearbeiten';
+  editBtn.onclick = (e) => {
+    e.stopPropagation();
+    currentGameIdx = gameIdx;
+    currentTrainerIdx = trainerIdx;
+    currentTeamIdx = teamIdx;
+    renderEditor();
+  };
+  
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'danger small';
+  removeBtn.textContent = '🗑️';
+  removeBtn.onclick = (e) => {
+    e.stopPropagation();
+    projectData.games[gameIdx].trainers[trainerIdx].teams.splice(teamIdx, 1);
+    renderEditor();
+  };
+  
+  btnGroup.appendChild(editBtn);
+  btnGroup.appendChild(removeBtn);
+  div.appendChild(btnGroup);
+  
+  return div;
+}
+
+function renderGameSection(game, gameIdx, compact = false) {
+  const section = document.createElement('div');
+  section.className = 'section';
+  
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.innerHTML = `<span>🎮 Spiel: ${game.name || '(Unbenannt)'}</span>`;
+  
+  const content = document.createElement('div');
+  content.className = 'section-content';
+  
+  const nameGroup = document.createElement('div');
+  nameGroup.className = 'form-group';
+  nameGroup.innerHTML = `<label>Spielname</label><input type="text" value="${game.name}" placeholder="z.B. Pokémon Rot">`;
+  nameGroup.querySelector('input').onchange = (e) => {
+    game.name = e.target.value;
+  };
+  content.appendChild(nameGroup);
+  
+  section.appendChild(header);
+  section.appendChild(content);
+  return section;
+}
+
+function renderTrainerSection(trainer, trainerIdx, gameIdx, compact = false) {
+  const section = document.createElement('div');
+  section.className = 'section';
+  
+  const header = document.createElement('div');
+  header.className = 'section-header';
+  header.style.backgroundColor = '#6c63ff';
+  header.innerHTML = `<span>👤 Trainer: ${trainer.name || '(Unbenannt)'}</span>`;
+  
+  const content = document.createElement('div');
+  content.className = 'section-content';
+  
+  const nameGroup = document.createElement('div');
+  nameGroup.className = 'form-group';
+  nameGroup.innerHTML = `<label>Name</label><input type="text" value="${trainer.name}" placeholder="z.B. Perdita">`;
+  nameGroup.querySelector('input').onchange = (e) => {
+    trainer.name = e.target.value;
+  };
+  content.appendChild(nameGroup);
+  
+  const textGroup = document.createElement('div');
+  textGroup.className = 'form-group';
+  textGroup.innerHTML = `
+    <label>Beschreibung</label>
+    <textarea placeholder="z.B. Purpur, Mono-Run: Fee"></textarea>
+    <div class="hint">Beispiel: Purpur, Mono-Run: Fee</div>
+  `;
+  const textInput = textGroup.querySelector('textarea');
+  textInput.value = trainer.text || '';
+  textInput.onchange = (e) => {
+    trainer.text = e.target.value;
+  };
+  content.appendChild(textGroup);
   
   section.appendChild(header);
   section.appendChild(content);
@@ -838,18 +979,19 @@ function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
   header.style.backgroundColor = '#ff6b6b';
   header.innerHTML = `<span>🎯 Team: ${team.name || '(Unbenannt)'}</span>`;
   
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'remove-btn small';
-  removeBtn.textContent = '🗑️ Entfernen';
-  removeBtn.onclick = (e) => {
-    e.stopPropagation();
-    projectData.games[gameIdx].trainers[trainerIdx].teams.splice(teamIdx, 1);
-    renderEditor();
-  };
-  header.appendChild(removeBtn);
-  
   const content = document.createElement('div');
   content.className = 'section-content';
+  
+  // Breadcrumb
+  const breadcrumb = document.createElement('div');
+  breadcrumb.className = 'breadcrumb';
+  const trainer = projectData.games[gameIdx].trainers[trainerIdx];
+  breadcrumb.innerHTML = `
+    <span>${projectData.games[gameIdx].name} /</span>
+    <span>${trainer.name} /</span>
+    <strong>Team ${teamIdx + 1} von ${trainer.teams.length}</strong>
+  `;
+  content.appendChild(breadcrumb);
   
   // Name
   const nameGroup = document.createElement('div');
@@ -877,62 +1019,44 @@ function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
   const navDiv = document.createElement('div');
   navDiv.className = 'team-navigation';
   
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '⬅️ Vorheriges Team';
-  prevBtn.disabled = teamIdx === 0;
-  prevBtn.onclick = () => {
-    if (teamIdx > 0) {
-      currentGameIdx = gameIdx;
-      currentTrainerIdx = trainerIdx;
-      currentTeamIdx = teamIdx - 1;
-      renderTeamExpandedView();
+  // Find current team position
+  let totalTeams = 0;
+  let currentPosition = 0;
+  
+  for (let g = 0; g < projectData.games.length; g++) {
+    for (let t = 0; t < projectData.games[g].trainers.length; t++) {
+      for (let tm = 0; tm < projectData.games[g].trainers[t].teams.length; tm++) {
+        if (g === gameIdx && t === trainerIdx && tm === teamIdx) {
+          currentPosition = totalTeams;
+        }
+        totalTeams++;
+      }
     }
+  }
+  
+  const prevBtn = document.createElement('button');
+  prevBtn.className = 'secondary';
+  prevBtn.textContent = '⬅️ Vorheriges Team';
+  prevBtn.disabled = currentPosition === 0;
+  prevBtn.onclick = () => {
+    navigateToPreviousTeam(gameIdx, trainerIdx, teamIdx);
   };
   
   const nextBtn = document.createElement('button');
+  nextBtn.className = 'secondary';
   nextBtn.textContent = 'Nächstes Team ➜';
-  nextBtn.disabled = teamIdx >= projectData.games[gameIdx].trainers[trainerIdx].teams.length - 1;
+  nextBtn.disabled = currentPosition >= totalTeams - 1;
   nextBtn.onclick = () => {
-    if (teamIdx < projectData.games[gameIdx].trainers[trainerIdx].teams.length - 1) {
-      currentGameIdx = gameIdx;
-      currentTrainerIdx = trainerIdx;
-      currentTeamIdx = teamIdx + 1;
-      renderTeamExpandedView();
-    }
+    navigateToNextTeam(gameIdx, trainerIdx, teamIdx);
   };
   
-  const prevTrainerBtn = document.createElement('button');
-  prevTrainerBtn.className = 'success';
-  prevTrainerBtn.textContent = '⬅️ Vorheriger Trainer';
-  if (trainerIdx > 0) {
-    prevTrainerBtn.onclick = () => {
-      currentGameIdx = gameIdx;
-      currentTrainerIdx = trainerIdx - 1;
-      currentTeamIdx = projectData.games[gameIdx].trainers[trainerIdx - 1].teams.length - 1;
-      renderTeamExpandedView();
-    };
-  } else {
-    prevTrainerBtn.disabled = true;
-  }
-  
-  const nextTrainerBtn = document.createElement('button');
-  nextTrainerBtn.className = 'success';
-  nextTrainerBtn.textContent = 'Nächster Trainer ➜';
-  if (trainerIdx < projectData.games[gameIdx].trainers.length - 1) {
-    nextTrainerBtn.onclick = () => {
-      currentGameIdx = gameIdx;
-      currentTrainerIdx = trainerIdx + 1;
-      currentTeamIdx = 0;
-      renderTeamExpandedView();
-    };
-  } else {
-    nextTrainerBtn.disabled = true;
-  }
+  const info = document.createElement('div');
+  info.className = 'team-info';
+  info.textContent = `Team ${currentPosition + 1} von ${totalTeams}`;
   
   navDiv.appendChild(prevBtn);
   navDiv.appendChild(nextBtn);
-  navDiv.appendChild(prevTrainerBtn);
-  navDiv.appendChild(nextTrainerBtn);
+  navDiv.appendChild(info);
   content.appendChild(navDiv);
   
   // Pokémon Grid
@@ -961,7 +1085,6 @@ function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
   
   if (!team.pokemon) team.pokemon = [];
   
-  // Show existing pokémon
   if (team.pokemon.length === 0) {
     for (let i = 0; i < 6; i++) {
       const emptyCard = createEmptyPokemonSlot(i, gameIdx, trainerIdx, teamIdx);
@@ -980,8 +1103,50 @@ function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
   return section;
 }
 
-function renderTeamExpandedView() {
-  renderEditor();
+function navigateToPreviousTeam(gameIdx, trainerIdx, teamIdx) {
+  if (teamIdx > 0) {
+    currentTeamIdx = teamIdx - 1;
+    renderEditor();
+    return;
+  }
+  
+  if (trainerIdx > 0) {
+    currentTrainerIdx = trainerIdx - 1;
+    currentTeamIdx = projectData.games[gameIdx].trainers[currentTrainerIdx].teams.length - 1;
+    renderEditor();
+    return;
+  }
+  
+  if (gameIdx > 0) {
+    currentGameIdx = gameIdx - 1;
+    currentTrainerIdx = projectData.games[currentGameIdx].trainers.length - 1;
+    currentTeamIdx = projectData.games[currentGameIdx].trainers[currentTrainerIdx].teams.length - 1;
+    renderEditor();
+  }
+}
+
+function navigateToNextTeam(gameIdx, trainerIdx, teamIdx) {
+  const trainer = projectData.games[gameIdx].trainers[trainerIdx];
+  
+  if (teamIdx < trainer.teams.length - 1) {
+    currentTeamIdx = teamIdx + 1;
+    renderEditor();
+    return;
+  }
+  
+  if (trainerIdx < projectData.games[gameIdx].trainers.length - 1) {
+    currentTrainerIdx = trainerIdx + 1;
+    currentTeamIdx = 0;
+    renderEditor();
+    return;
+  }
+  
+  if (gameIdx < projectData.games.length - 1) {
+    currentGameIdx = gameIdx + 1;
+    currentTrainerIdx = 0;
+    currentTeamIdx = 0;
+    renderEditor();
+  }
 }
 
 function createEmptyPokemonSlot(idx, gameIdx, trainerIdx, teamIdx) {
@@ -1139,10 +1304,6 @@ function createItemRow(item, itemIdx, gameIdx, trainerIdx, teamIdx, pkmnIdx) {
 
 // ============ VIEWER FUNCTIONS ============
 
-function getStatusEl(tabName) {
-  return document.getElementById(tabName + '-status');
-}
-
 let xmlDoc = null;
 let xslDoc = null;
 
@@ -1229,6 +1390,9 @@ document.getElementById('newProject').addEventListener('click', () => {
       trainers: []
     }]
   };
+  currentGameIdx = null;
+  currentTrainerIdx = null;
+  currentTeamIdx = null;
   renderEditor();
   showStatus('✨ Neues Projekt erstellt', 'success', 'editor');
 });
@@ -1239,6 +1403,9 @@ document.getElementById('addGame').addEventListener('click', () => {
     name: '',
     trainers: []
   });
+  currentGameIdx = null;
+  currentTrainerIdx = null;
+  currentTeamIdx = null;
   renderEditor();
   showStatus('➕ Spiel hinzugefügt', 'success', 'editor');
 });
@@ -1248,6 +1415,9 @@ document.getElementById('xmlLoad').addEventListener('change', async (e) => {
   try {
     const text = await e.target.files[0].text();
     projectData = parseXML(text);
+    currentGameIdx = null;
+    currentTrainerIdx = null;
+    currentTeamIdx = null;
     renderEditor();
     showStatus('✅ Projekt geladen', 'success', 'editor');
   } catch (err) {
