@@ -1,26 +1,16 @@
-# XML + XSLT Viewer
+# JuyJuka.MyPokemonJourney
+Dokumentiere all deine Abenteuer in der Welt von Pokemon.
+Blättere schnell hindurch und erinnere dich an alte Abenteuer und alte Freunde.
+Lerne etwas über dich selbst mit Statistiken und Auswertungen.
 
-Kleine, client-seitige "Software" zum Laden lokaler XML- und XSL-Dateien im Browser und zur Anzeige der transformierten Ansicht.
+Beispiel: https://wuerfelmeister.de/Visitenkarte/Pokemon%20Schwert%20und%20Schild.xml
 
-Verwendung
+# Offline
+1. Lade den Quellcode des ganzen Repos von https://github.com/JuyJuka/JuyJuka.MyPokemonJourney herunter und entpacke es.
+2. Öffne `index.html` im Browser (Doppelklick reicht in der Regel).
+3. Wähle deine lokale `*.xml`-Datei (und optional die `*.xsl`-Datei) über die Dateiauswahl.
+4. Klicke auf "Anwenden". Das Ergebnis wird unten angezeigt.
 
-1. Öffne `index.html` im Browser (Doppelklick reicht in der Regel).
-2. Wähle deine lokale `*.xml`-Datei (und optional die `*.xsl`-Datei) über die Dateiauswahl.
-3. Klicke auf "Anwenden". Das Ergebnis wird unten angezeigt.
-4. Du kannst das Ergebnis mit "Export als HTML" herunterladen.
-
-Hinweis
-
-- In den meisten Browsern funktioniert diese Seite direkt ohne Webserver (FileReader wird verwendet). Manche Browser beschränken lokale XSLT-Operationen oder Dateizugriffe — in diesem Fall starte einen einfachen lokalen Server und öffne die Seite per http.
-
-  Beispiel mit Python (falls installiert):
-
-  ```bash
-  python3 -m http.server 8000
-  # dann im Browser: http://localhost:8000/index.html
-  ```
-
-Branch
-
-Die Dateien wurden in den Branch `serve-xml-xslt` gelegt.
-
+# Online
+Wenn du dein eigenes *.xml Datei ausgefüllt hast kannst du diese einfach auf einem Webserver hosten.
+Wenn du dort die *.xsl auch hostest auf diese *.xsl verweist funktioniert es in jedem Browser.
