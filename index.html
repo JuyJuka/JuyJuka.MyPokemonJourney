@@ -130,6 +130,10 @@
     padding: 4px 8px;
     font-size: 0.85rem;
   }
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   
   #status {
     padding: 8px 12px;
@@ -218,8 +222,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
-    user-select: none;
   }
 
   .section-header:hover {
@@ -300,6 +302,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
+    margin-bottom: 12px;
   }
 
   .add-btn:hover {
@@ -413,18 +416,6 @@
     margin-left: auto;
   }
 
-  .trainer-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .trainer-header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-  }
-
   .empty-state {
     color: #999;
     text-align: center;
@@ -501,6 +492,7 @@ const HELD_ITEMS = [
 ];
 
 let projectData = null;
+let currentGameIdx = null;
 let currentTrainerIdx = null;
 let currentTeamIdx = null;
 
@@ -714,27 +706,18 @@ function renderGameSection(game, gameIdx) {
   nameGroup.innerHTML = `<label>Spielname</label><input type="text" value="${game.name}" placeholder="z.B. Pokémon Rot">`;
   nameGroup.querySelector('input').onchange = (e) => {
     game.name = e.target.value;
-    renderEditor();
   };
   content.appendChild(nameGroup);
   
   // Trainers
   const trainersDiv = document.createElement('div');
   trainersDiv.className = 'subsections';
-  trainersDiv.innerHTML = '<h3>👤 Trainer</h3>';
-  
-  if (!game.trainers) game.trainers = [];
-  
-  if (game.trainers.length > 0) {
-    game.trainers.forEach((trainer, trainerIdx) => {
-      trainersDiv.appendChild(renderTrainerSection(trainer, trainerIdx, gameIdx));
-    });
-  }
   
   const addTrainerBtn = document.createElement('button');
   addTrainerBtn.className = 'add-btn';
   addTrainerBtn.textContent = '➕ Trainer hinzufügen';
   addTrainerBtn.onclick = () => {
+    if (!game.trainers) game.trainers = [];
     game.trainers.push({
       name: '',
       text: '',
@@ -743,6 +726,18 @@ function renderGameSection(game, gameIdx) {
     renderEditor();
   };
   trainersDiv.appendChild(addTrainerBtn);
+  
+  const trainersTitle = document.createElement('h3');
+  trainersTitle.textContent = '👤 Trainer';
+  trainersDiv.appendChild(trainersTitle);
+  
+  if (!game.trainers) game.trainers = [];
+  
+  if (game.trainers.length > 0) {
+    game.trainers.forEach((trainer, trainerIdx) => {
+      trainersDiv.appendChild(renderTrainerSection(trainer, trainerIdx, gameIdx));
+    });
+  }
   
   content.appendChild(trainersDiv);
   
@@ -779,7 +774,6 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   nameGroup.innerHTML = `<label>Name</label><input type="text" value="${trainer.name}" placeholder="z.B. Perdita">`;
   nameGroup.querySelector('input').onchange = (e) => {
     trainer.name = e.target.value;
-    renderEditor();
   };
   content.appendChild(nameGroup);
   
@@ -801,20 +795,12 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   // Teams
   const teamsDiv = document.createElement('div');
   teamsDiv.className = 'subsections';
-  teamsDiv.innerHTML = '<h3>🎯 Teams</h3>';
-  
-  if (!trainer.teams) trainer.teams = [];
-  
-  if (trainer.teams.length > 0) {
-    trainer.teams.forEach((team, teamIdx) => {
-      teamsDiv.appendChild(renderTeamHeader(team, teamIdx, gameIdx, trainerIdx));
-    });
-  }
   
   const addTeamBtn = document.createElement('button');
   addTeamBtn.className = 'add-btn';
   addTeamBtn.textContent = '➕ Team hinzufügen';
   addTeamBtn.onclick = () => {
+    if (!trainer.teams) trainer.teams = [];
     trainer.teams.push({
       name: '',
       markierung: 'GGGGGG',
@@ -824,6 +810,18 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   };
   teamsDiv.appendChild(addTeamBtn);
   
+  const teamsTitle = document.createElement('h3');
+  teamsTitle.textContent = '🎯 Teams';
+  teamsDiv.appendChild(teamsTitle);
+  
+  if (!trainer.teams) trainer.teams = [];
+  
+  if (trainer.teams.length > 0) {
+    trainer.teams.forEach((team, teamIdx) => {
+      teamsDiv.appendChild(renderTeamSection(team, teamIdx, gameIdx, trainerIdx));
+    });
+  }
+  
   content.appendChild(teamsDiv);
   
   section.appendChild(header);
@@ -831,107 +829,27 @@ function renderTrainerSection(trainer, trainerIdx, gameIdx) {
   return section;
 }
 
-function renderTeamHeader(team, teamIdx, gameIdx, trainerIdx) {
-  const div = document.createElement('div');
-  div.style.display = 'flex';
-  div.style.justifyContent = 'space-between';
-  div.style.alignItems = 'center';
-  div.style.padding = '8px 12px';
-  div.style.background = '#fff';
-  div.style.border = '1px solid #ddd';
-  div.style.borderRadius = '4px';
-  div.style.marginBottom = '8px';
-  div.style.cursor = 'pointer';
-  
-  div.innerHTML = `<span>🎯 ${team.name || '(Unbenannt)'}</span>`;
-  
-  const btnGroup = document.createElement('div');
-  btnGroup.style.display = 'flex';
-  btnGroup.style.gap = '4px';
-  
-  const editBtn = document.createElement('button');
-  editBtn.className = 'primary small';
-  editBtn.textContent = '✏️ Bearbeiten';
-  editBtn.onclick = (e) => {
-    e.stopPropagation();
-    currentTrainerIdx = trainerIdx;
-    currentTeamIdx = teamIdx;
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
-  };
-  
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'danger small';
-  removeBtn.textContent = '🗑️';
-  removeBtn.onclick = (e) => {
-    e.stopPropagation();
-    projectData.games[gameIdx].trainers[trainerIdx].teams.splice(teamIdx, 1);
-    renderEditor();
-  };
-  
-  btnGroup.appendChild(editBtn);
-  btnGroup.appendChild(removeBtn);
-  div.appendChild(btnGroup);
-  
-  return div;
-}
-
-function renderTeamEditor(gameIdx, trainerIdx, teamIdx) {
-  const content = document.getElementById('editorContent');
-  const team = projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx];
-  const trainer = projectData.games[gameIdx].trainers[trainerIdx];
-  
-  content.innerHTML = '';
-  
-  // Navigation
-  const nav = document.createElement('div');
-  nav.className = 'team-navigation';
-  
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '⬅️ Vorheriges Team';
-  prevBtn.onclick = () => {
-    if (teamIdx > 0) {
-      renderTeamEditor(gameIdx, trainerIdx, teamIdx - 1);
-    }
-  };
-  prevBtn.disabled = teamIdx === 0;
-  
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = 'Nächstes Team ➜';
-  nextBtn.onclick = () => {
-    if (teamIdx < trainer.teams.length - 1) {
-      renderTeamEditor(gameIdx, trainerIdx, teamIdx + 1);
-    }
-  };
-  nextBtn.disabled = teamIdx >= trainer.teams.length - 1;
-  
-  const backBtn = document.createElement('button');
-  backBtn.className = 'primary';
-  backBtn.textContent = '🔙 Zurück zu Trainer';
-  backBtn.onclick = () => {
-    renderEditor();
-  };
-  
-  const info = document.createElement('div');
-  info.className = 'team-info';
-  info.textContent = `Team ${teamIdx + 1} von ${trainer.teams.length}`;
-  
-  nav.appendChild(prevBtn);
-  nav.appendChild(nextBtn);
-  nav.appendChild(backBtn);
-  nav.appendChild(info);
-  
-  content.appendChild(nav);
-  
-  // Team details
+function renderTeamSection(team, teamIdx, gameIdx, trainerIdx) {
   const section = document.createElement('div');
   section.className = 'section';
   
   const header = document.createElement('div');
   header.className = 'section-header';
-  header.innerHTML = `<span>🎯 Team bearbeiten: ${team.name || '(Unbenannt)'}</span>`;
+  header.style.backgroundColor = '#ff6b6b';
+  header.innerHTML = `<span>🎯 Team: ${team.name || '(Unbenannt)'}</span>`;
   
-  const sectionContent = document.createElement('div');
-  sectionContent.className = 'section-content';
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-btn small';
+  removeBtn.textContent = '🗑️ Entfernen';
+  removeBtn.onclick = (e) => {
+    e.stopPropagation();
+    projectData.games[gameIdx].trainers[trainerIdx].teams.splice(teamIdx, 1);
+    renderEditor();
+  };
+  header.appendChild(removeBtn);
+  
+  const content = document.createElement('div');
+  content.className = 'section-content';
   
   // Name
   const nameGroup = document.createElement('div');
@@ -939,9 +857,8 @@ function renderTeamEditor(gameIdx, trainerIdx, teamIdx) {
   nameGroup.innerHTML = `<label>Team-Name</label><input type="text" value="${team.name}">`;
   nameGroup.querySelector('input').onchange = (e) => {
     team.name = e.target.value;
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
   };
-  sectionContent.appendChild(nameGroup);
+  content.appendChild(nameGroup);
   
   // Markierung
   const markGroup = document.createElement('div');
@@ -954,46 +871,97 @@ function renderTeamEditor(gameIdx, trainerIdx, teamIdx) {
   markGroup.querySelector('input').onchange = (e) => {
     team.markierung = e.target.value.toUpperCase();
   };
-  sectionContent.appendChild(markGroup);
+  content.appendChild(markGroup);
   
-  section.appendChild(header);
-  section.appendChild(sectionContent);
-  content.appendChild(section);
+  // Team Navigation
+  const navDiv = document.createElement('div');
+  navDiv.className = 'team-navigation';
+  
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '⬅️ Vorheriges Team';
+  prevBtn.disabled = teamIdx === 0;
+  prevBtn.onclick = () => {
+    if (teamIdx > 0) {
+      currentGameIdx = gameIdx;
+      currentTrainerIdx = trainerIdx;
+      currentTeamIdx = teamIdx - 1;
+      renderTeamExpandedView();
+    }
+  };
+  
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Nächstes Team ➜';
+  nextBtn.disabled = teamIdx >= projectData.games[gameIdx].trainers[trainerIdx].teams.length - 1;
+  nextBtn.onclick = () => {
+    if (teamIdx < projectData.games[gameIdx].trainers[trainerIdx].teams.length - 1) {
+      currentGameIdx = gameIdx;
+      currentTrainerIdx = trainerIdx;
+      currentTeamIdx = teamIdx + 1;
+      renderTeamExpandedView();
+    }
+  };
+  
+  const prevTrainerBtn = document.createElement('button');
+  prevTrainerBtn.className = 'success';
+  prevTrainerBtn.textContent = '⬅️ Vorheriger Trainer';
+  if (trainerIdx > 0) {
+    prevTrainerBtn.onclick = () => {
+      currentGameIdx = gameIdx;
+      currentTrainerIdx = trainerIdx - 1;
+      currentTeamIdx = projectData.games[gameIdx].trainers[trainerIdx - 1].teams.length - 1;
+      renderTeamExpandedView();
+    };
+  } else {
+    prevTrainerBtn.disabled = true;
+  }
+  
+  const nextTrainerBtn = document.createElement('button');
+  nextTrainerBtn.className = 'success';
+  nextTrainerBtn.textContent = 'Nächster Trainer ➜';
+  if (trainerIdx < projectData.games[gameIdx].trainers.length - 1) {
+    nextTrainerBtn.onclick = () => {
+      currentGameIdx = gameIdx;
+      currentTrainerIdx = trainerIdx + 1;
+      currentTeamIdx = 0;
+      renderTeamExpandedView();
+    };
+  } else {
+    nextTrainerBtn.disabled = true;
+  }
+  
+  navDiv.appendChild(prevBtn);
+  navDiv.appendChild(nextBtn);
+  navDiv.appendChild(prevTrainerBtn);
+  navDiv.appendChild(nextTrainerBtn);
+  content.appendChild(navDiv);
   
   // Pokémon Grid
-  const pkmnSection = document.createElement('div');
-  pkmnSection.className = 'section';
-  
-  const pkmnHeader = document.createElement('div');
-  pkmnHeader.className = 'section-header';
-  pkmnHeader.style.backgroundColor = '#28a745';
-  pkmnHeader.innerHTML = '<span>🐉 Pokémon</span>';
-  
-  const pkmnContent = document.createElement('div');
-  pkmnContent.className = 'section-content';
-  
-  // Add button at top
   const addPkmnBtn = document.createElement('button');
   addPkmnBtn.className = 'add-btn';
   addPkmnBtn.textContent = '➕ Pokémon hinzufügen';
-  addPkmnBtn.style.marginBottom = '16px';
+  content.appendChild(addPkmnBtn);
+  
   addPkmnBtn.onclick = () => {
+    if (!team.pokemon) team.pokemon = [];
     team.pokemon.push({
       name: '',
       rasse: { id: '', name: '', img: '' },
       items: []
     });
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    renderEditor();
   };
-  pkmnContent.appendChild(addPkmnBtn);
   
-  // Pokémon grid
+  const pkmnTitle = document.createElement('h3');
+  pkmnTitle.textContent = '🐉 Pokémon';
+  pkmnTitle.style.marginTop = '20px';
+  content.appendChild(pkmnTitle);
+  
   const grid = document.createElement('div');
   grid.className = 'pokemon-grid';
   
   if (!team.pokemon) team.pokemon = [];
   
-  // Show existing pokémon or 6 empty slots
+  // Show existing pokémon
   if (team.pokemon.length === 0) {
     for (let i = 0; i < 6; i++) {
       const emptyCard = createEmptyPokemonSlot(i, gameIdx, trainerIdx, teamIdx);
@@ -1005,10 +973,15 @@ function renderTeamEditor(gameIdx, trainerIdx, teamIdx) {
     });
   }
   
-  pkmnContent.appendChild(grid);
-  pkmnSection.appendChild(pkmnHeader);
-  pkmnSection.appendChild(pkmnContent);
-  content.appendChild(pkmnSection);
+  content.appendChild(grid);
+  
+  section.appendChild(header);
+  section.appendChild(content);
+  return section;
+}
+
+function renderTeamExpandedView() {
+  renderEditor();
 }
 
 function createEmptyPokemonSlot(idx, gameIdx, trainerIdx, teamIdx) {
@@ -1027,12 +1000,13 @@ function createEmptyPokemonSlot(idx, gameIdx, trainerIdx, teamIdx) {
   
   card.querySelector('button').onclick = () => {
     const team = projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx];
+    if (!team.pokemon) team.pokemon = [];
     team.pokemon.push({
       name: '',
       rasse: { id: '', name: '', img: '' },
       items: []
     });
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    renderEditor();
   };
   
   return card;
@@ -1054,7 +1028,7 @@ function renderPokemonCard(pkmn, pkmnIdx, gameIdx, trainerIdx, teamIdx) {
   removeBtn.textContent = '🗑️';
   removeBtn.onclick = () => {
     projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx].pokemon.splice(pkmnIdx, 1);
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    renderEditor();
   };
   header.appendChild(removeBtn);
   
@@ -1066,7 +1040,7 @@ function renderPokemonCard(pkmn, pkmnIdx, gameIdx, trainerIdx, teamIdx) {
   nameGroup.innerHTML = `<label>Name</label><input type="text" value="${pkmn.name}" placeholder="z.B. Flamme">`;
   nameGroup.querySelector('input').onchange = (e) => {
     pkmn.name = e.target.value;
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    title.textContent = e.target.value || `Pokémon ${pkmnIdx + 1}`;
   };
   card.appendChild(nameGroup);
   
@@ -1128,7 +1102,7 @@ function renderPokemonCard(pkmn, pkmnIdx, gameIdx, trainerIdx, teamIdx) {
   addItemBtn.textContent = '➕ Item hinzufügen';
   addItemBtn.onclick = () => {
     pkmn.items.push('');
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    renderEditor();
   };
   
   itemsList.appendChild(addItemBtn);
@@ -1155,7 +1129,7 @@ function createItemRow(item, itemIdx, gameIdx, trainerIdx, teamIdx, pkmnIdx) {
   removeBtn.textContent = 'Entfernen';
   removeBtn.onclick = () => {
     projectData.games[gameIdx].trainers[trainerIdx].teams[teamIdx].pokemon[pkmnIdx].items.splice(itemIdx, 1);
-    renderTeamEditor(gameIdx, trainerIdx, teamIdx);
+    renderEditor();
   };
   
   row.appendChild(input);
@@ -1274,25 +1248,7 @@ document.getElementById('xmlLoad').addEventListener('change', async (e) => {
   try {
     const text = await e.target.files[0].text();
     projectData = parseXML(text);
-    
-    // Go to last team of last trainer of last game for editing
-    if (projectData.games.length > 0) {
-      const lastGame = projectData.games.length - 1;
-      const lastTrainer = projectData.games[lastGame].trainers?.length - 1;
-      const lastTeam = projectData.games[lastGame].trainers?.[lastTrainer]?.teams?.length - 1;
-      
-      if (lastTrainer >= 0 && lastTeam >= 0) {
-        document.querySelector('[data-tab="editor"]').click();
-        currentTrainerIdx = lastTrainer;
-        currentTeamIdx = lastTeam;
-        setTimeout(() => renderTeamEditor(lastGame, lastTrainer, lastTeam), 100);
-      } else {
-        renderEditor();
-      }
-    } else {
-      renderEditor();
-    }
-    
+    renderEditor();
     showStatus('✅ Projekt geladen', 'success', 'editor');
   } catch (err) {
     showStatus('❌ Fehler beim Laden: ' + err.message, 'error', 'editor');
