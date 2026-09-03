@@ -19,7 +19,7 @@
 <body>
   <h1>XML + XSLT Viewer</h1>
   <p>Wähle eine lokale XML- und optional eine XSL-Datei. Die Transformation läuft im Browser (kein Server nötig).
-  Wenn keine Dateien ausgewählt sind, versucht die Seite, die Standard-Dateien "data.xml" und "style.xsl" im selben Verzeichnis zu laden.
+  Wenn keine Dateien ausgewählt sind, versucht die Seite, die Standard-Dateien "Pokemon Schwert und Schild.xml" und "Pokemon Schwert und Schild.xsl" im selben Verzeichnis zu laden.
   Du kannst die Namen auch per Query-Parameter angeben: <code>?xml=mein.xml&xsl=mein.xsl</code>.</p>
   <div class="controls">
     <label>XML: <input id="xmlFile" type="file" accept=".xml,application/xml"></label>
@@ -39,8 +39,8 @@ const out = document.getElementById('output');
 const status = document.getElementById('status');
 
 // Default filenames next to this index.html
-const DEFAULT_XML = new URLSearchParams(location.search).get('xml') || 'data.xml';
-const DEFAULT_XSL = new URLSearchParams(location.search).get('xsl') || 'style.xsl';
+const DEFAULT_XML = new URLSearchParams(location.search).get('xml') || 'Pokemon Schwert und Schild.xml';
+const DEFAULT_XSL = new URLSearchParams(location.search).get('xsl') || 'Pokemon Schwert und Schild.xsl';
 
 let xmlDoc = null, xslDoc = null;
 
