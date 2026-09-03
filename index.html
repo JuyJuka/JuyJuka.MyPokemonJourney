@@ -18,7 +18,9 @@
 </head>
 <body>
   <h1>XML + XSLT Viewer</h1>
-  <p>Wähle eine lokale XML- und optional eine XSL-Datei. Die Transformation läuft im Browser (kein Server nötig).</p>
+  <p>Wähle eine lokale XML- und optional eine XSL-Datei. Die Transformation läuft im Browser (kein Server nötig).
+  Wenn keine Dateien ausgewählt sind, versucht die Seite, die Standard-Dateien "data.xml" und "style.xsl" im selben Verzeichnis zu laden.
+  Du kannst die Namen auch per Query-Parameter angeben: <code>?xml=mein.xml&xsl=mein.xsl</code>.</p>
   <div class="controls">
     <label>XML: <input id="xmlFile" type="file" accept=".xml,application/xml"></label>
     <label>XSL: <input id="xslFile" type="file" accept=".xsl,text/xsl,application/xslt+xml"></label>
@@ -35,6 +37,10 @@ const applyBtn = document.getElementById('apply');
 const downloadBtn = document.getElementById('download');
 const out = document.getElementById('output');
 const status = document.getElementById('status');
+
+// Default filenames next to this index.html
+const DEFAULT_XML = new URLSearchParams(location.search).get('xml') || 'data.xml';
+const DEFAULT_XSL = new URLSearchParams(location.search).get('xsl') || 'style.xsl';
 
 let xmlDoc = null, xslDoc = null;
 
@@ -75,19 +81,98 @@ xslInput.addEventListener('change', async (e)=>{
   } catch(err){ status.textContent = 'Fehler: ' + err; }
 });
 
-applyBtn.addEventListener('click', ()=>{
-  if(!xmlDoc){ alert('Bitte zuerst eine XML-Datei wählen.'); return; }
-  // Wenn keine XSL gewählt wurde, versuchen wir, die XML auf ein referenziertes Stylesheet zu prüfen
-  if(!xslDoc){
-    const pi = xmlDoc.firstChild && xmlDoc.firstChild.nodeType === 7 && xmlDoc.firstChild.nodeName === 'xml-stylesheet' ? xmlDoc.firstChild.nodeValue : null;
-    if(!pi){ alert('Keine XSL-Datei gewählt. Wenn Ihre XML ein Stylesheet-Referenz enthält, laden Sie die XSL-Datei separat.'); return; }
+async function fetchIfAvailable(path){
+  try{
+    const base = new URL(path, location.href).href;
+    const resp = await fetch(base);
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    return await resp.text();
+  }catch(e){
+    return null;
   }
+}
+
+async function loadDefaultsIfNeeded(){
+  if(xmlDoc && xslDoc) return true;
+  let loaded = false;
+  if(!xmlDoc){
+    const txt = await fetchIfAvailable(DEFAULT_XML);
+    if(txt !== null){
+      xmlDoc = new DOMParser().parseFromString(txt, 'application/xml');
+      if(!xmlDoc.querySelector('parsererror')){
+        status.textContent = `Default XML geladen: ${DEFAULT_XML}`;
+        loaded = true;
+      } else {
+        xmlDoc = null;
+      }
+    }
+  }
+  if(!xslDoc){
+    const txt = await fetchIfAvailable(DEFAULT_XSL);
+    if(txt !== null){
+      xslDoc = new DOMParser().parseFromString(txt, 'application/xml');
+      if(!xslDoc.querySelector('parsererror')){
+        status.textContent = (status.textContent?status.textContent+' | ':'') + `Default XSL geladen: ${DEFAULT_XSL}`;
+        loaded = true;
+      } else {
+        xslDoc = null;
+      }
+    }
+  }
+  return loaded || (xmlDoc && xslDoc);
+}
+
+function fixResourceUrls(root){
+  const WALK_ATTRS = [ ['img','src'], ['image','href'], ['a','href'], ['link','href'], ['script','src'] ];
+  WALK_ATTRS.forEach(([tag,attr])=>{
+    const nodes = root.querySelectorAll(tag+'['+attr+']');
+    nodes.forEach(n=>{
+      const v = n.getAttribute(attr);
+      if(!v) return;
+      if(v.startsWith('//')){
+        n.setAttribute(attr, 'https:' + v);
+      }
+    });
+  });
+}
+
+applyBtn.addEventListener('click', async ()=>{
+  if(!xmlDoc || !xslDoc){
+    const ok = await loadDefaultsIfNeeded();
+    if(!ok){
+      alert('Bitte zuerst eine XML- und/oder XSL-Datei wählen, oder legen Sie Default-Dateien "'+DEFAULT_XML+'" und "'+DEFAULT_XSL+'" neben der index.html ab (oder starten Sie einen lokalen Server).');
+      return;
+    }
+  }
+
+  if(!xslDoc){
+    const pi = Array.from(xmlDoc.childNodes).find(n=>n.nodeType===7 && n.nodeName==='xml-stylesheet');
+    if(pi){
+      const m = /href\s*=\s*"([^"]+)"/.exec(pi.nodeValue);
+      if(m){
+        const href = m[1];
+        const txt = await fetchIfAvailable(href);
+        if(txt){
+          xslDoc = new DOMParser().parseFromString(txt, 'application/xml');
+        }
+      }
+    }
+
+    if(!xslDoc){
+      alert('Keine XSL gefunden. Bitte XSL per Datei-Auswahl angeben oder die XSL als "'+DEFAULT_XSL+'" im selben Verzeichnis ablegen.');
+      return;
+    }
+  }
+
   try {
     const proc = new XSLTProcessor();
     proc.importStylesheet(xslDoc);
     const frag = proc.transformToFragment(xmlDoc, document);
+    const container = document.createElement('div');
+    container.appendChild(frag.cloneNode(true));
+    fixResourceUrls(container);
     out.innerHTML = '';
-    out.appendChild(frag);
+    while(container.firstChild) out.appendChild(container.firstChild);
     status.textContent = 'Transformation erfolgreich.';
   } catch(err){
     out.textContent = 'Fehler bei der Transformation: ' + err;
@@ -105,6 +190,12 @@ downloadBtn.addEventListener('click', ()=>{
   a.click();
   URL.revokeObjectURL(a.href);
 });
+
+(async ()=>{
+  if(location.protocol === 'http:' || location.protocol === 'https:'){
+    await loadDefaultsIfNeeded();
+  }
+})();
 </script>
 </body>
 </html>
