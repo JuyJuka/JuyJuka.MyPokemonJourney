@@ -1186,6 +1186,12 @@
 											<b>Team:</b>
 											<xsl:value-of select="Name"/>
 										</p>
+										<div class="statistics gen-box">
+											<h1>🧬 Generationen</h1>
+											<xsl:call-template name="gen-stats">
+												<xsl:with-param name="pokemons" select="Pokemon"/>
+											</xsl:call-template>
+										</div>
 									</div>
 									<div class="carousel-slide-nav">
 										<label class="carousel-button" for="slide-{generate-id()}-{count(Pokemon)+1}">‹</label>
@@ -1215,6 +1221,12 @@
 											<b>Team:</b>
 											<xsl:value-of select="Name"/>
 										</p>
+									<div class="statistics gen-box">
+										<h1>🧬 Generationen</h1>
+										<xsl:call-template name="gen-stats">
+											<xsl:with-param name="pokemons" select="Pokemon"/>
+										</xsl:call-template>
+									</div>
 									</div>
 									<div class="carousel-slide-nav">
 										<label class="carousel-button" for="slide-{generate-id()}-0">‹</label>
