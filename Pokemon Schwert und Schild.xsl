@@ -254,7 +254,8 @@
 					border-radius:8px;
 					overflow:hidden;
 					background:#fff;
-					box-shadow:0 2px 6px rgba(0,0,0,.08)
+					box-shadow:0 2px 6px rgba(0,0,0,.08);
+					max-width:80%;
 					}
 					.game-statistics th,
 					.game-statistics td{
@@ -284,6 +285,9 @@
 					/* ===================================================== */
 					/* Generations-Statistiken (Badges + Balken)              */
 					/* ===================================================== */
+					span.gen-stats{
+					display: inline-table;
+					}
 					.gen-box{
 					margin-top:10px;
 					margin-bottom:14px
@@ -298,7 +302,7 @@
 					align-items:center;
 					padding:3px 9px;
 					border-radius:12px;
-					font-size:12px;
+					font-size:9px;
 					font-weight:bold;
 					color:#fff;
 					white-space:nowrap
@@ -316,15 +320,15 @@
 					.gen-bar span{
 					height:100%
 					}
-					.gen01{background:#4C72B0}
-					.gen02{background:#DD8452}
-					.gen03{background:#55A868}
-					.gen04{background:#C44E52}
-					.gen05{background:#8172B2}
-					.gen06{background:#937860}
-					.gen07{background:#DA8BC3}
-					.gen08{background:#8C8C8C}
-					.gen09{background:#CCB974}
+					.gen01 { background: #9b001a; /* Rot */ }
+					.gen02 { background: #c59618; /* Gold */ }
+					.gen03 { background: #016730; /* Smaragd */ }
+					.gen04 { background: #008fa3; /* Türkis */ }
+					.gen05 { background: #1a1a1a; /* Schwarz */ }
+					.gen06 { background: #1d273c; /* Dunkelblau */ }
+					.gen07 { background: #fc810d; /* Sonne */ }
+					.gen08 { background: #0089bc; /* Schwert */ }
+					.gen09 { background: #39174f; /* Purpur */ }
 					/* Generation 10: .gen10{background:#....} */
 					/* ===================================================== */
 					/* Statistik-Listen */
@@ -1070,12 +1074,12 @@
 									</xsl:for-each>
 								</span>
 							</xsl:if>
-						</div>
-						<div class="statistics gen-box">
-							<h1>🧬 Generationen</h1>
-							<xsl:call-template name="gen-stats">
-								<xsl:with-param name="pokemons" select="Team[string-length(../Name/text()) &gt; 0]/Pokemon"/>
-							</xsl:call-template>
+							<b>🧬 Generationen</b>
+							<span class="gen-stats">
+								<xsl:call-template name="gen-stats">
+									<xsl:with-param name="pokemons" select="Team[string-length(../Name/text()) &gt; 0]/Pokemon"/>
+								</xsl:call-template>
+							</span>
 						</div>
 						<xsl:for-each select="Team[string-length(../Name/text()) &gt; 0]">
 							<xsl:sort select="../Name" data-type="text"/>
@@ -1092,6 +1096,12 @@
 											</span>
 										</xsl:if>
 									</h2>
+									<div class="statistics gen-box">
+										<h1>🧬 Generationen</h1>
+										<xsl:call-template name="gen-stats">
+											<xsl:with-param name="pokemons" select="Pokemon"/>
+										</xsl:call-template>
+									</div>
 									<div class="tooltip">
 										<xsl:for-each select="*[not(./*)] | ../*[not(./*)]">
 											<b>
@@ -1140,12 +1150,6 @@
 											</div>
 										</div>
 									</xsl:for-each>
-								</div>
-								<div class="statistics gen-box">
-									<h1>🧬 Generationen</h1>
-									<xsl:call-template name="gen-stats">
-										<xsl:with-param name="pokemons" select="Pokemon"/>
-									</xsl:call-template>
 								</div>
 							</div>
 						</xsl:for-each>
