@@ -2,6 +2,158 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:output method="html" standalone="yes" indent="yes" />
 	<xsl:key name="species" match="Pokemon" use="Rasse/Name" />
+	<!-- ===================================================== -->
+	<!-- Generationen                                           -->
+	<!-- Obere ID-Grenze je Generation. Neue Generation (z.B.   -->
+	<!-- Generation 10) hinzufügen:                             -->
+	<!--  1) hier eine weitere genMaxN-Variable ergänzen         -->
+	<!--  2) im Template "get-generation" den auskommentierten   -->
+	<!--     xsl:when-Block für die neue Generation aktivieren   -->
+	<!--  3) im Template "gen-stats" die auskommentierte         -->
+	<!--     cumN-Variable und den letzten xsl:if-Block aktivieren -->
+	<!-- ===================================================== -->
+	<xsl:variable name="genMax1">151</xsl:variable>
+	<xsl:variable name="genMax2">251</xsl:variable>
+	<xsl:variable name="genMax3">386</xsl:variable>
+	<xsl:variable name="genMax4">493</xsl:variable>
+	<xsl:variable name="genMax5">649</xsl:variable>
+	<xsl:variable name="genMax6">721</xsl:variable>
+	<xsl:variable name="genMax7">809</xsl:variable>
+	<xsl:variable name="genMax8">905</xsl:variable>
+	<xsl:variable name="genMax9">1025</xsl:variable>
+	<!-- Generation 10: <xsl:variable name="genMax10">....</xsl:variable> -->
+
+	<!-- Liefert die Generationsnummer für eine übergebene Rasse/ID -->
+	<xsl:template name="get-generation">
+		<xsl:param name="id"/>
+		<xsl:choose>
+			<xsl:when test="number($id) &lt;= $genMax1">1</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax2">2</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax3">3</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax4">4</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax5">5</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax6">6</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax7">7</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax8">8</xsl:when>
+			<xsl:when test="number($id) &lt;= $genMax9">9</xsl:when>
+			<!-- Generation 10: <xsl:when test="number($id) &lt;= $genMax10">10</xsl:when> -->
+			<xsl:otherwise>?</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+
+	<!-- Liefert "Gen 1: 8 (30%), Gen 2: 3 (11%), ..." für eine übergebene Pokemon-Knotenmenge -->
+	<xsl:template name="gen-stats">
+		<xsl:param name="pokemons" select="/.."/>
+		<xsl:variable name="total" select="count($pokemons)"/>
+		<xsl:if test="$total &gt; 0">
+			<xsl:variable name="cum1" select="count($pokemons[number(Rasse/ID) &lt;= $genMax1])"/>
+			<xsl:variable name="cum2" select="count($pokemons[number(Rasse/ID) &lt;= $genMax2])"/>
+			<xsl:variable name="cum3" select="count($pokemons[number(Rasse/ID) &lt;= $genMax3])"/>
+			<xsl:variable name="cum4" select="count($pokemons[number(Rasse/ID) &lt;= $genMax4])"/>
+			<xsl:variable name="cum5" select="count($pokemons[number(Rasse/ID) &lt;= $genMax5])"/>
+			<xsl:variable name="cum6" select="count($pokemons[number(Rasse/ID) &lt;= $genMax6])"/>
+			<xsl:variable name="cum7" select="count($pokemons[number(Rasse/ID) &lt;= $genMax7])"/>
+			<xsl:variable name="cum8" select="count($pokemons[number(Rasse/ID) &lt;= $genMax8])"/>
+			<xsl:variable name="cum9" select="count($pokemons[number(Rasse/ID) &lt;= $genMax9])"/>
+			<!-- Generation 10: <xsl:variable name="cum10" select="count($pokemons[number(Rasse/ID) &lt;= $genMax10])"/> -->
+
+			<xsl:if test="$cum1 &gt; 0">
+				<xsl:text>Gen 1: </xsl:text>
+				<xsl:value-of select="$cum1"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number($cum1 div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum2 &gt; $cum1">
+				<xsl:if test="$cum1 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 2: </xsl:text>
+				<xsl:value-of select="$cum2 - $cum1"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum2 - $cum1) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum3 &gt; $cum2">
+				<xsl:if test="$cum2 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 3: </xsl:text>
+				<xsl:value-of select="$cum3 - $cum2"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum3 - $cum2) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum4 &gt; $cum3">
+				<xsl:if test="$cum3 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 4: </xsl:text>
+				<xsl:value-of select="$cum4 - $cum3"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum4 - $cum3) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum5 &gt; $cum4">
+				<xsl:if test="$cum4 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 5: </xsl:text>
+				<xsl:value-of select="$cum5 - $cum4"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum5 - $cum4) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum6 &gt; $cum5">
+				<xsl:if test="$cum5 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 6: </xsl:text>
+				<xsl:value-of select="$cum6 - $cum5"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum6 - $cum5) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum7 &gt; $cum6">
+				<xsl:if test="$cum6 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 7: </xsl:text>
+				<xsl:value-of select="$cum7 - $cum6"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum7 - $cum6) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum8 &gt; $cum7">
+				<xsl:if test="$cum7 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 8: </xsl:text>
+				<xsl:value-of select="$cum8 - $cum7"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum8 - $cum7) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<xsl:if test="$cum9 &gt; $cum8">
+				<xsl:if test="$cum8 &gt; 0">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+				<xsl:text>Gen 9: </xsl:text>
+				<xsl:value-of select="$cum9 - $cum8"/>
+				<xsl:text> (</xsl:text>
+				<xsl:value-of select="format-number(($cum9 - $cum8) div $total * 100,'0')"/>
+				<xsl:text>%)</xsl:text>
+			</xsl:if>
+			<!--
+			Generation 10 (Beispiel):
+			<xsl:if test="$cum10 &gt; $cum9">
+				<xsl:if test="$cum9 &gt; 0"><xsl:text>, </xsl:text></xsl:if>
+				<xsl:text>Gen 10: </xsl:text><xsl:value-of select="$cum10 - $cum9"/>
+				<xsl:text> (</xsl:text><xsl:value-of select="format-number(($cum10 - $cum9) div $total * 100,'0')"/><xsl:text>%)</xsl:text>
+			</xsl:if>
+			-->
+		</xsl:if>
+	</xsl:template>
 	<xsl:template match="/">
 		<html>
 			<head>
@@ -91,6 +243,7 @@
 					/* ===================================================== */
 					.statistics-container{
 					display:flex;
+					flex-wrap:wrap;
 					align-items:flex-start;
 					gap:20px;
 					margin-bottom:10px
@@ -147,6 +300,26 @@
 					.game-statistics td.max{
 					font-weight:bold;
 					background:#e1e4e7
+					}
+					.game-statistics td.gen-cell{
+					font-size:12px;
+					color:#444
+					}
+					/* ===================================================== */
+					/* Generations-Statistiken (Trainer/Team)                 */
+					/* ===================================================== */
+					.generation-stats{
+					font-size:13px;
+					color:#444;
+					margin-top:8px
+					}
+					.generation-stats b{
+					color:#202124
+					}
+					.team-gen-stats{
+					font-size:13px;
+					color:#444;
+					margin:2px 0 8px
 					}
 					/* ===================================================== */
 					/* Statistik-Listen */
@@ -750,12 +923,21 @@
 								</xsl:if>
 							</xsl:for-each>
 						</div>
+						<div class="statistics">
+							<h1>🧬 Generationen</h1>
+							<p class="generation-stats">
+								<xsl:call-template name="gen-stats">
+									<xsl:with-param name="pokemons" select="//Pokemon"/>
+								</xsl:call-template>
+							</p>
+						</div>
 						<table class="game-statistics">
 							<tr>
 								<th>Spiel</th>
 								<th>Anzahl Trainer</th>
 								<th>Anzahl Teams.</th>
 								<th>Anzahl Pokemon</th>
+								<th>Generationen</th>
 							</tr>
 							<xsl:for-each select="//Spiel">
 								<tr>
@@ -789,6 +971,11 @@
 										</xsl:if>
 										<xsl:value-of select="count(.//Pokemon)"/>
 									</td>
+									<td class="gen-cell">
+										<xsl:call-template name="gen-stats">
+											<xsl:with-param name="pokemons" select=".//Pokemon"/>
+										</xsl:call-template>
+									</td>
 								</tr>
 							</xsl:for-each>
 							<tr class="sum">
@@ -801,6 +988,11 @@
 								</td>
 								<td>
 									<xsl:value-of select="count(//Pokemon)"/>
+								</td>
+								<td class="gen-cell">
+									<xsl:call-template name="gen-stats">
+										<xsl:with-param name="pokemons" select="//Pokemon"/>
+									</xsl:call-template>
 								</td>
 							</tr>
 						</table>
@@ -882,6 +1074,13 @@
 								</span>
 							</xsl:if>
 						</div>
+						<div class="generation-stats">
+							<b>🧬 Generationen:</b>
+							<xsl:text> </xsl:text>
+							<xsl:call-template name="gen-stats">
+								<xsl:with-param name="pokemons" select="Team[string-length(../Name/text()) &gt; 0]/Pokemon"/>
+							</xsl:call-template>
+						</div>
 						<xsl:for-each select="Team[string-length(../Name/text()) &gt; 0]">
 							<xsl:sort select="../Name" data-type="text"/>
 							<div class="trainer" id="team-{generate-id()}">
@@ -929,6 +1128,11 @@
 											<div class="tooltip">
 												<b>Rasse: </b>
 												<xsl:value-of select="Rasse/Name/text()"/>
+												<xsl:text> (Gen </xsl:text>
+												<xsl:call-template name="get-generation">
+													<xsl:with-param name="id" select="Rasse/ID"/>
+												</xsl:call-template>
+												<xsl:text>)</xsl:text>
 												<br/>
 												<xsl:for-each select="*[name(.) != 'Rasse' and not(./*)]">
 													<b>
@@ -940,6 +1144,13 @@
 											</div>
 										</div>
 									</xsl:for-each>
+								</div>
+								<div class="team-gen-stats">
+									<b>🧬 Generationen:</b>
+									<xsl:text> </xsl:text>
+									<xsl:call-template name="gen-stats">
+										<xsl:with-param name="pokemons" select="Pokemon"/>
+									</xsl:call-template>
 								</div>
 							</div>
 						</xsl:for-each>
@@ -1040,6 +1251,11 @@
 											<p>
 												<b>Rasse:</b>
 												<xsl:value-of select="Rasse/Name/text()"/>
+												<xsl:text> (Gen </xsl:text>
+												<xsl:call-template name="get-generation">
+													<xsl:with-param name="id" select="Rasse/ID"/>
+												</xsl:call-template>
+												<xsl:text>)</xsl:text>
 											</p>
 											<xsl:for-each select="*[name(.) != 'Rasse' and not(./*)]">
 												<p>
