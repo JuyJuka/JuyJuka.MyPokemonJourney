@@ -41,7 +41,7 @@
 		</xsl:choose>
 	</xsl:template>
 
-	<!-- Liefert "Gen 1: 8 (30%), Gen 2: 3 (11%), ..." für eine übergebene Pokemon-Knotenmenge -->
+	<!-- Liefert die Generationen-Anzeige (Badges + gestapelter Balken) für eine übergebene Pokemon-Knotenmenge -->
 	<xsl:template name="gen-stats">
 		<xsl:param name="pokemons" select="/.."/>
 		<xsl:variable name="total" select="count($pokemons)"/>
@@ -57,101 +57,77 @@
 			<xsl:variable name="cum9" select="count($pokemons[number(Rasse/ID) &lt;= $genMax9])"/>
 			<!-- Generation 10: <xsl:variable name="cum10" select="count($pokemons[number(Rasse/ID) &lt;= $genMax10])"/> -->
 
-			<xsl:if test="$cum1 &gt; 0">
-				<xsl:text>Gen 1: </xsl:text>
-				<xsl:value-of select="$cum1"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number($cum1 div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum2 &gt; $cum1">
+			<!-- Zeile 1: Badges -->
+			<span class="gen-badges">
 				<xsl:if test="$cum1 &gt; 0">
-					<xsl:text>, </xsl:text>
+					<span class="gen-badge gen01">Gen 01: <xsl:value-of select="$cum1"/> (<xsl:value-of select="format-number($cum1 div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 2: </xsl:text>
-				<xsl:value-of select="$cum2 - $cum1"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum2 - $cum1) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum3 &gt; $cum2">
-				<xsl:if test="$cum2 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum2 &gt; $cum1">
+					<span class="gen-badge gen02">Gen 02: <xsl:value-of select="$cum2 - $cum1"/> (<xsl:value-of select="format-number(($cum2 - $cum1) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 3: </xsl:text>
-				<xsl:value-of select="$cum3 - $cum2"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum3 - $cum2) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum4 &gt; $cum3">
-				<xsl:if test="$cum3 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum3 &gt; $cum2">
+					<span class="gen-badge gen03">Gen 03: <xsl:value-of select="$cum3 - $cum2"/> (<xsl:value-of select="format-number(($cum3 - $cum2) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 4: </xsl:text>
-				<xsl:value-of select="$cum4 - $cum3"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum4 - $cum3) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum5 &gt; $cum4">
-				<xsl:if test="$cum4 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum4 &gt; $cum3">
+					<span class="gen-badge gen04">Gen 04: <xsl:value-of select="$cum4 - $cum3"/> (<xsl:value-of select="format-number(($cum4 - $cum3) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 5: </xsl:text>
-				<xsl:value-of select="$cum5 - $cum4"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum5 - $cum4) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum6 &gt; $cum5">
-				<xsl:if test="$cum5 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum5 &gt; $cum4">
+					<span class="gen-badge gen05">Gen 05: <xsl:value-of select="$cum5 - $cum4"/> (<xsl:value-of select="format-number(($cum5 - $cum4) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 6: </xsl:text>
-				<xsl:value-of select="$cum6 - $cum5"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum6 - $cum5) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum7 &gt; $cum6">
-				<xsl:if test="$cum6 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum6 &gt; $cum5">
+					<span class="gen-badge gen06">Gen 06: <xsl:value-of select="$cum6 - $cum5"/> (<xsl:value-of select="format-number(($cum6 - $cum5) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 7: </xsl:text>
-				<xsl:value-of select="$cum7 - $cum6"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum7 - $cum6) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum8 &gt; $cum7">
-				<xsl:if test="$cum7 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum7 &gt; $cum6">
+					<span class="gen-badge gen07">Gen 07: <xsl:value-of select="$cum7 - $cum6"/> (<xsl:value-of select="format-number(($cum7 - $cum6) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 8: </xsl:text>
-				<xsl:value-of select="$cum8 - $cum7"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum8 - $cum7) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<xsl:if test="$cum9 &gt; $cum8">
-				<xsl:if test="$cum8 &gt; 0">
-					<xsl:text>, </xsl:text>
+				<xsl:if test="$cum8 &gt; $cum7">
+					<span class="gen-badge gen08">Gen 08: <xsl:value-of select="$cum8 - $cum7"/> (<xsl:value-of select="format-number(($cum8 - $cum7) div $total * 100,'0')"/>%)</span>
 				</xsl:if>
-				<xsl:text>Gen 9: </xsl:text>
-				<xsl:value-of select="$cum9 - $cum8"/>
-				<xsl:text> (</xsl:text>
-				<xsl:value-of select="format-number(($cum9 - $cum8) div $total * 100,'0')"/>
-				<xsl:text>%)</xsl:text>
-			</xsl:if>
-			<!--
-			Generation 10 (Beispiel):
-			<xsl:if test="$cum10 &gt; $cum9">
-				<xsl:if test="$cum9 &gt; 0"><xsl:text>, </xsl:text></xsl:if>
-				<xsl:text>Gen 10: </xsl:text><xsl:value-of select="$cum10 - $cum9"/>
-				<xsl:text> (</xsl:text><xsl:value-of select="format-number(($cum10 - $cum9) div $total * 100,'0')"/><xsl:text>%)</xsl:text>
-			</xsl:if>
-			-->
+				<xsl:if test="$cum9 &gt; $cum8">
+					<span class="gen-badge gen09">Gen 09: <xsl:value-of select="$cum9 - $cum8"/> (<xsl:value-of select="format-number(($cum9 - $cum8) div $total * 100,'0')"/>%)</span>
+				</xsl:if>
+				<!-- Generation 10:
+				<xsl:if test="$cum10 &gt; $cum9">
+					<span class="gen-badge gen10">Gen 10: <xsl:value-of select="$cum10 - $cum9"/> (<xsl:value-of select="format-number(($cum10 - $cum9) div $total * 100,'0')"/>%)</span>
+				</xsl:if>
+				-->
+			</span>
+			<br/>
+			<!-- Zeile 2: gestapelter Balken -->
+			<span class="gen-bar">
+				<xsl:if test="$cum1 &gt; 0">
+					<span class="gen01" style="width:{format-number($cum1 div $total * 100,'0.##')}%" title="{concat('Gen 01: ',$cum1,' (',format-number($cum1 div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum2 &gt; $cum1">
+					<span class="gen02" style="width:{format-number(($cum2 - $cum1) div $total * 100,'0.##')}%" title="{concat('Gen 02: ',$cum2 - $cum1,' (',format-number(($cum2 - $cum1) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum3 &gt; $cum2">
+					<span class="gen03" style="width:{format-number(($cum3 - $cum2) div $total * 100,'0.##')}%" title="{concat('Gen 03: ',$cum3 - $cum2,' (',format-number(($cum3 - $cum2) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum4 &gt; $cum3">
+					<span class="gen04" style="width:{format-number(($cum4 - $cum3) div $total * 100,'0.##')}%" title="{concat('Gen 04: ',$cum4 - $cum3,' (',format-number(($cum4 - $cum3) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum5 &gt; $cum4">
+					<span class="gen05" style="width:{format-number(($cum5 - $cum4) div $total * 100,'0.##')}%" title="{concat('Gen 05: ',$cum5 - $cum4,' (',format-number(($cum5 - $cum4) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum6 &gt; $cum5">
+					<span class="gen06" style="width:{format-number(($cum6 - $cum5) div $total * 100,'0.##')}%" title="{concat('Gen 06: ',$cum6 - $cum5,' (',format-number(($cum6 - $cum5) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum7 &gt; $cum6">
+					<span class="gen07" style="width:{format-number(($cum7 - $cum6) div $total * 100,'0.##')}%" title="{concat('Gen 07: ',$cum7 - $cum6,' (',format-number(($cum7 - $cum6) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum8 &gt; $cum7">
+					<span class="gen08" style="width:{format-number(($cum8 - $cum7) div $total * 100,'0.##')}%" title="{concat('Gen 08: ',$cum8 - $cum7,' (',format-number(($cum8 - $cum7) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<xsl:if test="$cum9 &gt; $cum8">
+					<span class="gen09" style="width:{format-number(($cum9 - $cum8) div $total * 100,'0.##')}%" title="{concat('Gen 09: ',$cum9 - $cum8,' (',format-number(($cum9 - $cum8) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				<!-- Generation 10:
+				<xsl:if test="$cum10 &gt; $cum9">
+					<span class="gen10" style="width:{format-number(($cum10 - $cum9) div $total * 100,'0.##')}%" title="{concat('Gen 10: ',$cum10 - $cum9,' (',format-number(($cum10 - $cum9) div $total * 100,'0'),'%)')}"></span>
+				</xsl:if>
+				-->
+			</span>
 		</xsl:if>
 	</xsl:template>
 	<xsl:template match="/">
@@ -306,21 +282,50 @@
 					color:#444
 					}
 					/* ===================================================== */
-					/* Generations-Statistiken (Trainer/Team)                 */
+					/* Generations-Statistiken (Badges + Balken)              */
 					/* ===================================================== */
-					.generation-stats{
-					font-size:13px;
-					color:#444;
-					margin-top:8px
+					.gen-box{
+					margin-top:10px;
+					margin-bottom:14px
 					}
-					.generation-stats b{
-					color:#202124
+					.gen-badges{
+					display:inline-flex;
+					flex-wrap:wrap;
+					gap:6px
 					}
-					.team-gen-stats{
-					font-size:13px;
-					color:#444;
-					margin:2px 0 8px
+					.gen-badge{
+					display:inline-flex;
+					align-items:center;
+					padding:3px 9px;
+					border-radius:12px;
+					font-size:12px;
+					font-weight:bold;
+					color:#fff;
+					white-space:nowrap
 					}
+					.gen-bar{
+					display:inline-flex;
+					height:14px;
+					width:100%;
+					max-width:400px;
+					border-radius:4px;
+					overflow:hidden;
+					box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+					margin-top:6px
+					}
+					.gen-bar span{
+					height:100%
+					}
+					.gen01{background:#4C72B0}
+					.gen02{background:#DD8452}
+					.gen03{background:#55A868}
+					.gen04{background:#C44E52}
+					.gen05{background:#8172B2}
+					.gen06{background:#937860}
+					.gen07{background:#DA8BC3}
+					.gen08{background:#8C8C8C}
+					.gen09{background:#CCB974}
+					/* Generation 10: .gen10{background:#....} */
 					/* ===================================================== */
 					/* Statistik-Listen */
 					/* ===================================================== */
@@ -923,14 +928,6 @@
 								</xsl:if>
 							</xsl:for-each>
 						</div>
-						<div class="statistics">
-							<h1>🧬 Generationen</h1>
-							<p class="generation-stats">
-								<xsl:call-template name="gen-stats">
-									<xsl:with-param name="pokemons" select="//Pokemon"/>
-								</xsl:call-template>
-							</p>
-						</div>
 						<table class="game-statistics">
 							<tr>
 								<th>Spiel</th>
@@ -1074,9 +1071,8 @@
 								</span>
 							</xsl:if>
 						</div>
-						<div class="generation-stats">
-							<b>🧬 Generationen:</b>
-							<xsl:text> </xsl:text>
+						<div class="statistics gen-box">
+							<h1>🧬 Generationen</h1>
 							<xsl:call-template name="gen-stats">
 								<xsl:with-param name="pokemons" select="Team[string-length(../Name/text()) &gt; 0]/Pokemon"/>
 							</xsl:call-template>
@@ -1145,9 +1141,8 @@
 										</div>
 									</xsl:for-each>
 								</div>
-								<div class="team-gen-stats">
-									<b>🧬 Generationen:</b>
-									<xsl:text> </xsl:text>
+								<div class="statistics gen-box">
+									<h1>🧬 Generationen</h1>
 									<xsl:call-template name="gen-stats">
 										<xsl:with-param name="pokemons" select="Pokemon"/>
 									</xsl:call-template>
