@@ -1096,12 +1096,6 @@
 											</span>
 										</xsl:if>
 									</h2>
-									<div class="statistics gen-box">
-										<h1>🧬 Generationen</h1>
-										<xsl:call-template name="gen-stats">
-											<xsl:with-param name="pokemons" select="Pokemon"/>
-										</xsl:call-template>
-									</div>
 									<div class="tooltip">
 										<xsl:for-each select="*[not(./*)] | ../*[not(./*)]">
 											<b>
@@ -1110,6 +1104,12 @@
 											<xsl:value-of select="./text()"/>
 											<br/>
 										</xsl:for-each>
+									</div>
+									<div class="statistics gen-box">
+										<h1>🧬 Generationen</h1>
+										<xsl:call-template name="gen-stats">
+											<xsl:with-param name="pokemons" select="Pokemon"/>
+										</xsl:call-template>
 									</div>
 								</div>
 								<div class="zoom hover">
