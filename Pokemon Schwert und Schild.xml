@@ -4328,6 +4328,62 @@
 			</Team>
 		</Trainer>
 		<Trainer>
+			<Name>Gane</Name>
+			<Text>Karmesin, Nur Alola Pokemon</Text>
+			<Team>
+				<Name></Name>
+				<Markierung>GGGGGG</Markierung>
+				<Pokemon>
+					<Name>G`s Partner</Name>
+					<Rasse>
+						<Name>Silvarro</Name>
+						<ID>724</ID>
+					</Rasse>
+					<Item>Offensivweste</Item>
+				</Pokemon>
+				<Pokemon>
+					<Name>G`s Kumpel</Name>
+					<Rasse>
+						<Name>Fuegro</Name>
+						<ID>727</ID>
+					</Rasse>
+					<Item></Item>
+				</Pokemon>
+				<Pokemon>
+					<Name>G`s Bhin</Name>
+					<Rasse>
+						<Name>Pampross</Name>
+						<ID>750</ID>
+					</Rasse>
+					<Item></Item>
+				</Pokemon>
+				<Pokemon>
+					<Name>G`s Kollega</Name>
+					<Rasse>
+						<Name>Krawell</Name>
+						<ID>740</ID>
+					</Rasse>
+					<Item></Item>
+				</Pokemon>
+				<Pokemon>
+					<Name>G`s Freundin</Name>
+					<Rasse>
+						<Name>Mantidea</Name>
+						<ID>754</ID>
+					</Rasse>
+					<Item></Item>
+				</Pokemon>
+				<Pokemon>
+					<Name>G`s Freund</Name>
+					<Rasse>
+						<Name>Aggrostella</Name>
+						<ID>748</ID>
+					</Rasse>
+					<Item>Beulenhelm</Item>
+				</Pokemon>
+			</Team>
+		</Trainer>
+		<Trainer>
 			<Name>Hane</Name>
 			<Text>Karmesin, Nur Galar Pokemon</Text>
 			<Team>
