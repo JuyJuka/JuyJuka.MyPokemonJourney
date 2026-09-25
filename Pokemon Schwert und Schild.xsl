@@ -261,7 +261,8 @@
 					.game-statistics td{
 					border-bottom:solid #d0d4d9 1px;
 					padding:7px 10px;
-					text-align:left
+					text-align:left;
+					white-space:nowrap;
 					}
 					.game-statistics th{
 					font-weight:bold;
@@ -1069,7 +1070,14 @@
 									<xsl:for-each select="Team[string-length(../Name/text()) &gt; 0]">
 										<xsl:sort select="Name" data-type="text"/>
 										<a href="#team-{generate-id()}">
-											<xsl:value-of select="Name"/>
+											<xsl:choose>
+												<xsl:when test="string-length(Name/text()) &gt; 0">
+													<xsl:value-of select="Name"/>
+												</xsl:when>
+												<xsl:otherwise>
+													<xsl:value-of select="../Name"/>
+												</xsl:otherwise>
+											</xsl:choose>
 										</a>
 									</xsl:for-each>
 								</span>
